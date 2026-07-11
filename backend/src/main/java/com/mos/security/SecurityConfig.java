@@ -1,14 +1,13 @@
 package com.mos.security;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mos.common.exception.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,10 +38,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/**", "/api/session/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(this::handleUnauthorized))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(this::handleUnauthorized)
+                        .accessDeniedHandler(this::handleForbidden)
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -58,11 +61,24 @@ public class SecurityConfig {
             HttpServletResponse response,
             org.springframework.security.core.AuthenticationException authException
     ) throws java.io.IOException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        writeError(response, HttpStatus.UNAUTHORIZED, "Unauthorized", "Authentication required");
+    }
+
+    private void handleForbidden(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            org.springframework.security.access.AccessDeniedException accessDeniedException
+    ) throws java.io.IOException {
+        writeError(response, HttpStatus.FORBIDDEN, "Forbidden", "Access denied");
+    }
+
+    private void writeError(HttpServletResponse response, HttpStatus status, String error, String message)
+            throws java.io.IOException {
+        response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(
                 response.getOutputStream(),
-                ErrorResponse.of(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", "Authentication required")
+                ErrorResponse.of(status.value(), error, message)
         );
     }
 }

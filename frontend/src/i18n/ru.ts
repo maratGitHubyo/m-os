@@ -14,6 +14,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   'Cannot transfer coins to yourself': 'Нельзя переводить монеты самому себе',
   'User is not a participant of this game session': 'Игрок не участник текущей сессии',
   'QR code not found': 'QR-код не найден',
+  'QR already scanned': 'Этот QR уже найден вами',
+  'QR unavailable': 'QR недоступен',
   'You have already scanned this QR code': 'Вы уже сканировали этот QR-код',
   'QR code scan limit reached': 'Лимит сканирований QR-кода исчерпан',
   'QR code is inactive': 'QR-код неактивен',

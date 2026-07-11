@@ -196,6 +196,18 @@ export interface QrScanResponse {
   locationDiscovered: boolean;
 }
 
+export interface QrScanRewardInfo {
+  coins: number | null;
+  item: string | null;
+}
+
+export interface QrScanResultResponse {
+  success: boolean;
+  title: string | null;
+  reward: QrScanRewardInfo | null;
+  message: string;
+}
+
 export type SecretRewardType = 'COIN' | 'ITEM' | 'NUMBER' | 'QUEST' | 'NONE';
 
 export interface SecretRedeemResponse {

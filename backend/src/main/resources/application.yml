@@ -31,6 +31,8 @@ mos:
   jwt:
     secret: ${JWT_SECRET:mos-dev-secret-key-change-me-in-production-32chars-min}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  qr:
+    base-url: ${MOS_QR_BASE_URL:https://mos.local/qr}
 
 springdoc:
   swagger-ui:

@@ -50,6 +50,12 @@ public class QrCode {
     @Column(nullable = false)
     private String code;
 
+    @Column(name = "public_id", nullable = false, unique = true)
+    private UUID publicId;
+
+    @Column
+    private String title;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "reward_type", nullable = false, length = 50)
     private QrRewardType rewardType;
@@ -77,6 +83,12 @@ public class QrCode {
     void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();
+        }
+        if (publicId == null) {
+            publicId = UUID.randomUUID();
+        }
+        if (title == null || title.isBlank()) {
+            title = code;
         }
         if (active == null) {
             active = true;

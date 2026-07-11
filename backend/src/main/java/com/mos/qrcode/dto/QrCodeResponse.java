@@ -10,6 +10,8 @@ import java.util.UUID;
 public record QrCodeResponse(
         UUID id,
         UUID gameSessionId,
+        UUID publicId,
+        String title,
         UUID locationPointId,
         String code,
         QrRewardType rewardType,
@@ -23,6 +25,8 @@ public record QrCodeResponse(
         return new QrCodeResponse(
                 qrCode.getId(),
                 qrCode.getGameSessionId(),
+                qrCode.getPublicId(),
+                qrCode.getTitle(),
                 qrCode.getLocationPoint() != null ? qrCode.getLocationPoint().getId() : null,
                 qrCode.getCode(),
                 qrCode.getRewardType(),

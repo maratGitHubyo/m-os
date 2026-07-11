@@ -5,7 +5,7 @@ import { logout, useAuth } from '../stores/authStore';
 const navItems = [
   { to: '/', label: 'Главная', end: true },
   { to: '/map', label: 'Карта' },
-  { to: '/qr', label: 'QR' },
+  { to: '/scan', label: 'Сканировать QR' },
   { to: '/secrets', label: 'Секреты' },
   { to: '/inventory', label: 'Инвентарь' },
   { to: '/wallet', label: 'Кошелёк' },

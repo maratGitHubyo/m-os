@@ -79,9 +79,23 @@ export interface CreateQrCodeRequest {
   scanLimit?: number | null;
 }
 
+export type QrRewardKind = 'NONE' | 'COIN' | 'ITEM' | 'LOCATION';
+
+export interface CreateQrCodeSimpleRequest {
+  title: string;
+  rewardKind: QrRewardKind;
+  coinAmount?: number | null;
+  itemTemplateId?: string | null;
+  locationPointId?: string | null;
+  scanPolicy?: 'FIRST_PLAYER' | 'EVERY_PLAYER' | 'LIMITED';
+  scanLimit?: number | null;
+}
+
 export interface QrCodeInfo {
   id: string;
   gameSessionId: string;
+  publicId: string;
+  title: string;
   locationPointId: string | null;
   code: string;
   rewardType: 'COIN' | 'ITEM' | 'NONE';

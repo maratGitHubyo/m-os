@@ -19,10 +19,12 @@ server:
 
 mos:
   cors:
-    allowed-origins: ${MOS_CORS_ALLOWED_ORIGINS:http://localhost}
+    allowed-origins: ${MOS_CORS_ALLOWED_ORIGINS:http://172.23.80.1}
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  qr:
+    base-url: ${MOS_QR_BASE_URL:https://mos.local/qr}
   demo:
     seed:
       enabled: ${MOS_DEMO_SEED_ENABLED:false}

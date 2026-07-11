@@ -45,10 +45,17 @@ public class QrScan {
     @Column(name = "scanned_at", nullable = false, updatable = false)
     private Instant scannedAt;
 
+    @Column(name = "reward_given", nullable = false)
+    @Builder.Default
+    private Boolean rewardGiven = true;
+
     @PrePersist
     void onCreate() {
         if (scannedAt == null) {
             scannedAt = Instant.now();
+        }
+        if (rewardGiven == null) {
+            rewardGiven = true;
         }
     }
 }

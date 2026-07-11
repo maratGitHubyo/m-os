@@ -8,11 +8,14 @@ import com.mos.item.service.ItemService;
 import com.mos.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/items")
@@ -26,6 +29,12 @@ public class AdminItemController {
     public ItemTemplateResponse createTemplate(@Valid @RequestBody CreateItemTemplateRequest request) {
         var admin = SecurityUtils.getCurrentUser();
         return itemService.createTemplate(admin.gameSessionId(), request);
+    }
+
+    @GetMapping("/templates")
+    public List<ItemTemplateResponse> listTemplates() {
+        var admin = SecurityUtils.getCurrentUser();
+        return itemService.getTemplates(admin.gameSessionId());
     }
 
     @PostMapping("/grant")

@@ -15,6 +15,10 @@ export async function createItemTemplate(
   });
 }
 
+export async function listItemTemplates(): Promise<ItemTemplate[]> {
+  return apiFetch<ItemTemplate[]>('/api/admin/items/templates');
+}
+
 export async function grantItem(request: AdminGrantItemRequest): Promise<Item> {
   return apiFetch<Item>('/api/admin/items/grant', {
     method: 'POST',

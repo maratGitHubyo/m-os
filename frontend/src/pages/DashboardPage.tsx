@@ -87,7 +87,7 @@ export function DashboardPage() {
               Исследовать → Получить награду → Обменяться → Набрать очки → Победить
             </p>
             <div className="quick-actions">
-              <Link to="/qr" className="quick-action-card">
+              <Link to="/scan" className="quick-action-card">
                 <strong>QR-коды</strong>
                 <span>Сканировать награды</span>
               </Link>

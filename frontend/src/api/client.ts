@@ -1,3 +1,5 @@
+import { getToken } from '../stores/authStore';
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
 export class ApiError extends Error {
@@ -15,17 +17,33 @@ export async function apiFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const url = `${API_URL}${path}`;
+  const token = getToken();
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    (headers as Record<string, string>).Authorization = `Bearer ${token}`;
+  }
 
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `Request failed: ${response.statusText}`);
+    let message = `Request failed: ${response.statusText}`;
+    try {
+      const body = (await response.json()) as { message?: string };
+      if (body.message) {
+        message = body.message;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    throw new ApiError(response.status, message);
   }
 
   if (response.status === 204) {

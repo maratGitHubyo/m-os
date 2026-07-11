@@ -2,6 +2,46 @@ export interface HealthResponse {
   status: string;
 }
 
+export type ParticipantRole = 'ADMIN' | 'PLAYER';
+
+export type GameSessionStatus = 'STARTING' | 'ACTIVE' | 'PAUSED' | 'FINISHED';
+
+export interface User {
+  id: string;
+  nickname: string;
+  role: ParticipantRole;
+  username?: string;
+}
+
+export interface Session {
+  id: string;
+  name: string;
+  date?: string;
+  status?: GameSessionStatus;
+  mapImageUrl?: string | null;
+}
+
+export interface GameConfig {
+  startingCoins: number;
+  maxTradeOffers: number;
+  numbersTotal: number;
+  fogOfWarEnabled: boolean;
+  secretsEnabled: boolean;
+  leaderboardEnabled: boolean;
+}
+
+export interface GameSessionInfo extends Session {
+  createdAt?: string;
+  updatedAt?: string;
+  config?: GameConfig | null;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+  session: Session;
+}
+
 export interface LocationPoint {
   id: string;
   zone: string;
@@ -13,8 +53,167 @@ export interface LocationPoint {
   description: string | null;
 }
 
-export interface GameSessionInfo {
+export interface Wallet {
   id: string;
+  userId: string;
+  gameSessionId: string;
+  balance: number;
+  version: number;
+  updatedAt: string;
+}
+
+export type CoinTransactionType =
+  | 'REWARD'
+  | 'TRADE'
+  | 'ADMIN'
+  | 'QR'
+  | 'QUEST'
+  | 'SECRET'
+  | 'AUCTION';
+
+export interface CoinTransaction {
+  id: string;
+  userId: string;
+  gameSessionId: string;
+  amount: number;
+  type: CoinTransactionType;
+  referenceId: string | null;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+export type ItemRarity = 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+
+export interface ItemTemplate {
+  id: string;
+  gameSessionId: string;
   name: string;
-  mapImageUrl: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  rarity: ItemRarity;
+  isUnique: boolean;
+  createdAt: string;
+}
+
+export interface Item {
+  id: string;
+  ownerId: string;
+  gameSessionId: string;
+  acquiredFrom: string;
+  acquiredAt: string;
+  template: ItemTemplate;
+}
+
+export type QuestType =
+  | 'COLLECT_ITEMS'
+  | 'FIND_LOCATIONS'
+  | 'COLLECT_NUMBERS'
+  | 'REACH_SCORE'
+  | 'CUSTOM';
+
+export type QuestDefinitionStatus = 'ACTIVE' | 'DISABLED';
+
+export type PlayerQuestStatus = 'ACTIVE' | 'COMPLETED' | 'FAILED';
+
+export interface Quest {
+  id: string;
+  gameSessionId: string;
+  title: string;
+  description: string;
+  type: QuestType;
+  status: QuestDefinitionStatus;
+  targetConfig: Record<string, unknown>;
+  rewardConfig: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface QuestProgress {
+  id: string;
+  questId: string;
+  userId: string;
+  gameSessionId: string;
+  status: PlayerQuestStatus;
+  progress: Record<string, unknown>;
+  completedAt: string | null;
+  createdAt: string;
+  quest: Quest;
+}
+
+export type ScoreCategory = 'TOTAL' | 'EXPLORER' | 'COLLECTOR' | 'TRADER' | 'QUEST';
+
+export interface Score {
+  userId: string;
+  gameSessionId: string;
+  category: ScoreCategory;
+  points: number;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  nickname: string;
+  points: number;
+}
+
+export type VictoryConditionType =
+  | 'COLLECT_ALL_NUMBERS'
+  | 'COLLECT_UNIQUE_ITEMS'
+  | 'REACH_SCORE'
+  | 'FIND_ALL_LOCATIONS'
+  | 'CUSTOM';
+
+export interface VictoryCondition {
+  id: string;
+  gameSessionId: string;
+  type: VictoryConditionType;
+  targetValue: Record<string, unknown>;
+  description: string;
+  active: boolean;
+  achieved: boolean;
+  achievedAt: string | null;
+  achievedByUserId: string | null;
+  achievedByMe: boolean;
+  progressCurrent: number | null;
+  progressTarget: number | null;
+  progressLabel: string | null;
+}
+
+export type GameEventType =
+  | 'ANNOUNCEMENT'
+  | 'BONUS_PERIOD'
+  | 'LOCATION_REVEAL'
+  | 'LEADERBOARD_FREEZE'
+  | 'AUCTION'
+  | 'CUSTOM';
+
+export type GameEventStatus = 'SCHEDULED' | 'RUNNING' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+
+export interface GameEvent {
+  id: string;
+  gameSessionId: string;
+  type: GameEventType;
+  title: string;
+  description: string | null;
+  status: GameEventStatus;
+  startAt: string | null;
+  endAt: string | null;
+  config: Record<string, unknown> | null;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface GameEventBroadcast {
+  eventId: string;
+  gameSessionId: string;
+  status: GameEventStatus;
+  title: string;
+  changedAt: string;
 }

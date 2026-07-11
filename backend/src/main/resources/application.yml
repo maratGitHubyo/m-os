@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: mos-backend
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+mos:
+  cors:
+    allowed-origins: http://localhost:5173
+  jwt:
+    secret: ${JWT_SECRET:mos-dev-secret-key-change-me-in-production-32chars-min}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}

@@ -1,8 +1,10 @@
 package com.mos.numbers.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public record CreateCollectibleNumberRequest(
-        @NotNull Integer numberValue
+        @NotNull @Positive Integer numberValue
 ) {
 }

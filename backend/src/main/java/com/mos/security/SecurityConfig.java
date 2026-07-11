@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
@@ -66,7 +67,7 @@ public class SecurityConfig {
             HttpServletResponse response,
             org.springframework.security.core.AuthenticationException authException
     ) throws java.io.IOException {
-        writeError(response, HttpStatus.UNAUTHORIZED, "Unauthorized", "Authentication required");
+        writeError(request, response, HttpStatus.UNAUTHORIZED, "Unauthorized", "Authentication required");
     }
 
     private void handleForbidden(
@@ -74,16 +75,21 @@ public class SecurityConfig {
             HttpServletResponse response,
             org.springframework.security.access.AccessDeniedException accessDeniedException
     ) throws java.io.IOException {
-        writeError(response, HttpStatus.FORBIDDEN, "Forbidden", "Access denied");
+        writeError(request, response, HttpStatus.FORBIDDEN, "Forbidden", "Access denied");
     }
 
-    private void writeError(HttpServletResponse response, HttpStatus status, String error, String message)
-            throws java.io.IOException {
+    private void writeError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            HttpStatus status,
+            String error,
+            String message
+    ) throws java.io.IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(
                 response.getOutputStream(),
-                ErrorResponse.of(status.value(), error, message)
+                ErrorResponse.of(status.value(), error, message, request.getRequestURI())
         );
     }
 }

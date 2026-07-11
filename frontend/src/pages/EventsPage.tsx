@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchEvents } from '../api/events';
+import { PageState } from '../components/ui/PageState';
 import type { GameEvent } from '../types';
 
 function formatType(type: GameEvent['type']): string {
@@ -45,14 +46,13 @@ export function EventsPage() {
       <h1>Events</h1>
       <p className="page-hint">Scheduled and active game events. Live updates appear as notifications.</p>
 
-      {loading && <p className="status-loading">Loading events…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && events.length === 0 && (
-        <p className="empty-state">No events scheduled.</p>
-      )}
-
-      {!loading && !error && events.length > 0 && (
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Loading events…"
+        empty={events.length === 0}
+        emptyMessage="No events scheduled."
+      >
         <ul className="event-list">
           {events.map((event) => (
             <li key={event.id} className="event-card">
@@ -71,7 +71,7 @@ export function EventsPage() {
             </li>
           ))}
         </ul>
-      )}
+      </PageState>
     </section>
   );
 }

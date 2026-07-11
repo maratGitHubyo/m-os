@@ -5,6 +5,7 @@ import { fetchMyQuests } from '../api/quests';
 import { fetchMyScores } from '../api/score';
 import { fetchVictoryConditions } from '../api/victory';
 import { fetchMyWallet } from '../api/wallet';
+import { PageState } from '../components/ui/PageState';
 import { useAuth } from '../stores/authStore';
 import type {
   GameSessionInfo,
@@ -73,10 +74,7 @@ export function DashboardPage() {
       <h1>Dashboard</h1>
       <p className="page-hint">Your game overview at a glance.</p>
 
-      {loading && <p className="status-loading">Loading dashboard…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && (
+      <PageState loading={loading} error={error} loadingLabel="Loading dashboard…">
         <div className="dashboard-grid">
           <article className="card">
             <h2>Profile</h2>
@@ -171,7 +169,7 @@ export function DashboardPage() {
             </Link>
           </article>
         </div>
-      )}
+      </PageState>
     </section>
   );
 }

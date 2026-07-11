@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchMyTransactions, fetchMyWallet } from '../api/wallet';
+import { PageState } from '../components/ui/PageState';
 import type { CoinTransaction, Wallet } from '../types';
 
 export function WalletPage() {
@@ -47,10 +48,8 @@ export function WalletPage() {
       <h1>Wallet</h1>
       <p className="page-hint">Your coin balance and transaction history.</p>
 
-      {loading && <p className="status-loading">Loading wallet…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && wallet && (
+      <PageState loading={loading} error={error} loadingLabel="Loading wallet…">
+        {wallet && (
         <>
           <article className="card wallet-balance">
             <h2>Current balance</h2>
@@ -79,7 +78,8 @@ export function WalletPage() {
             </ul>
           )}
         </>
-      )}
+        )}
+      </PageState>
     </section>
   );
 }

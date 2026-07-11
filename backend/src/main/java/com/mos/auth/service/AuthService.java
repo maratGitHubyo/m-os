@@ -14,12 +14,14 @@ import com.mos.session.service.SessionResolver;
 import com.mos.user.entity.User;
 import com.mos.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -48,6 +50,9 @@ public class AuthService {
                 .orElseThrow(() -> new InvalidCredentialsException("User is not a participant of the current session"));
 
         String token = jwtTokenProvider.createToken(user.getId(), session.getId(), participant.getRole());
+
+        log.info("User logged in: username={} userId={} sessionId={} role={}",
+                user.getUsername(), user.getId(), session.getId(), participant.getRole());
 
         return new LoginResponse(
                 token,

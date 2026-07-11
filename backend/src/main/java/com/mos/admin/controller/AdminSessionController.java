@@ -6,11 +6,13 @@ import com.mos.session.dto.GameSessionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/session")
 @RequiredArgsConstructor
+@Tag(name = "Admin Session")
 public class AdminSessionController {
 
     private final AdminSessionService adminSessionService;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchMyQuests, fetchQuests, startQuest } from '../api/quests';
+import { PageState } from '../components/ui/PageState';
 import type { Quest, QuestProgress } from '../types';
 
 function formatQuestType(type: Quest['type']): string {
@@ -65,10 +66,7 @@ export function QuestPage() {
       <h1>Quests</h1>
       <p className="page-hint">Start quests and track your progress.</p>
 
-      {loading && <p className="status-loading">Loading quests…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && (
+      <PageState loading={loading} error={error} loadingLabel="Loading quests…">
         <>
           <h2 className="section-title">Available quests</h2>
           {available.length === 0 ? (
@@ -140,7 +138,7 @@ export function QuestPage() {
             </>
           )}
         </>
-      )}
+      </PageState>
     </section>
   );
 }

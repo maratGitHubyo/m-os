@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchInventory } from '../api/inventory';
+import { PageState } from '../components/ui/PageState';
 import type { Item } from '../types';
 
 export function InventoryPage() {
@@ -41,14 +42,13 @@ export function InventoryPage() {
       <h1>Inventory</h1>
       <p className="page-hint">Items you have collected in this session.</p>
 
-      {loading && <p className="status-loading">Loading inventory…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && items.length === 0 && (
-        <p className="empty-state">Your inventory is empty.</p>
-      )}
-
-      {!loading && !error && items.length > 0 && (
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Loading inventory…"
+        empty={items.length === 0}
+        emptyMessage="Your inventory is empty."
+      >
         <ul className="item-grid">
           {items.map((item) => (
             <li key={item.id} className="item-card">
@@ -73,7 +73,7 @@ export function InventoryPage() {
             </li>
           ))}
         </ul>
-      )}
+      </PageState>
     </section>
   );
 }

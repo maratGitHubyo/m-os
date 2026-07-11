@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchCurrentSession, fetchLocations } from '../api/locations';
 import { GameMap } from '../components/GameMap';
+import { PageState } from '../components/ui/PageState';
 import type { LocationPoint } from '../types';
 
 export function MapPage() {
@@ -54,14 +55,13 @@ export function MapPage() {
         Fog of war: hidden locations show zone and marker only until discovered.
       </p>
 
-      {loading && <p className="status-loading">Loading map…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && locations.length === 0 && (
-        <p className="empty-state">No locations on the map yet.</p>
-      )}
-
-      {!loading && !error && locations.length > 0 && (
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Loading map…"
+        empty={locations.length === 0}
+        emptyMessage="No locations on the map yet."
+      >
         <>
           <GameMap
             locations={locations}
@@ -103,7 +103,7 @@ export function MapPage() {
             })}
           </ul>
         </>
-      )}
+      </PageState>
     </section>
   );
 }

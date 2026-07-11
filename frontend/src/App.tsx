@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminRoute } from './components/admin/AdminRoute';
-import { ToastContainer } from './components/admin/ToastContainer';
+import { ToastContainer } from './components/ui/ToastContainer';
 import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -27,6 +27,8 @@ import { MapPage } from './pages/MapPage';
 import { QuestPage } from './pages/QuestPage';
 import { VictoryPage } from './pages/VictoryPage';
 import { WalletPage } from './pages/WalletPage';
+import { ForbiddenPage } from './pages/ForbiddenPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { isAuthenticated } from './stores/authStore';
 
 function LoginRoute() {
@@ -72,7 +74,8 @@ export function App() {
             </Route>
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/403" element={<ForbiddenPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <ToastContainer />
     </BrowserRouter>

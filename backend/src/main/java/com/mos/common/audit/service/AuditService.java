@@ -5,6 +5,7 @@ import com.mos.common.audit.entity.AuditLog;
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
@@ -32,7 +34,11 @@ public class AuditService {
                 .metadata(entry.metadata() != null ? new HashMap<>(entry.metadata()) : new HashMap<>())
                 .build();
 
-        return auditLogRepository.save(auditLog);
+        AuditLog saved = auditLogRepository.save(auditLog);
+        log.info("Audit action={} userId={} sessionId={} entityType={} entityId={} description={}",
+                entry.action(), entry.userId(), entry.gameSessionId(),
+                entry.entityType(), entry.entityId(), entry.description());
+        return saved;
     }
 
     @Transactional

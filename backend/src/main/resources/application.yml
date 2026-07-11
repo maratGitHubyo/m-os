@@ -15,6 +15,15 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: M-OS Backend
+    description: Marat Operating System — birthday game API
+    version: 0.0.1-SNAPSHOT
 
 mos:
   cors:
@@ -22,3 +31,9 @@ mos:
   jwt:
     secret: ${JWT_SECRET:mos-dev-secret-key-change-me-in-production-32chars-min}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

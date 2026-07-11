@@ -6,11 +6,13 @@ import com.mos.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/dashboard")
 @RequiredArgsConstructor
+@Tag(name = "Admin Dashboard")
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;

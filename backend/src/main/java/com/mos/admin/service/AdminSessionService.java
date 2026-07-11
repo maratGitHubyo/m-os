@@ -9,6 +9,7 @@ import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.GameSessionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminSessionService {
 
     private final GameSessionRepository gameSessionRepository;
@@ -34,6 +36,9 @@ public class AdminSessionService {
 
         session.setStatus(GameSessionStatus.ACTIVE);
         gameSessionRepository.save(session);
+
+        log.info("Session started: sessionId={} performedBy={} previousStatus={}",
+                gameSessionId, performedByUserId, previousStatus);
 
         auditService.log(
                 performedByUserId,
@@ -90,6 +95,9 @@ public class AdminSessionService {
 
         session.setStatus(GameSessionStatus.FINISHED);
         gameSessionRepository.save(session);
+
+        log.info("Session finished: sessionId={} performedBy={} previousStatus={}",
+                gameSessionId, performedByUserId, previousStatus);
 
         auditService.log(
                 performedByUserId,

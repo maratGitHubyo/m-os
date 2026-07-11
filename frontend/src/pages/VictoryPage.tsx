@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchVictoryConditions } from '../api/victory';
+import { PageState } from '../components/ui/PageState';
 import type { VictoryCondition } from '../types';
 
 function formatType(type: VictoryCondition['type']): string {
@@ -65,14 +66,13 @@ export function VictoryPage() {
         Progress is calculated by the server. Complete any active condition to win.
       </p>
 
-      {loading && <p className="status-loading">Loading conditions…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && conditions.length === 0 && (
-        <p className="empty-state">No victory conditions configured yet.</p>
-      )}
-
-      {!loading && !error && conditions.length > 0 && (
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Loading conditions…"
+        empty={conditions.length === 0}
+        emptyMessage="No victory conditions configured yet."
+      >
         <>
           <div className="victory-page__summary">
             {myVictory && <p className="status-ok">You achieved a victory condition!</p>}
@@ -136,7 +136,7 @@ export function VictoryPage() {
             })}
           </ul>
         </>
-      )}
+      </PageState>
     </section>
   );
 }

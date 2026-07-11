@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard } from '../api/score';
+import { PageState } from '../components/ui/PageState';
 import type { LeaderboardEntry } from '../types';
 
 export function LeaderboardPage() {
@@ -41,14 +42,13 @@ export function LeaderboardPage() {
       <h1>Leaderboard</h1>
       <p className="page-hint">Top players by total score.</p>
 
-      {loading && <p className="status-loading">Loading leaderboard…</p>}
-      {error && <p className="status-error">{error}</p>}
-
-      {!loading && !error && entries.length === 0 && (
-        <p className="empty-state">Leaderboard is empty.</p>
-      )}
-
-      {!loading && !error && entries.length > 0 && (
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Loading leaderboard…"
+        empty={entries.length === 0}
+        emptyMessage="Leaderboard is empty."
+      >
         <table className="leaderboard-table">
           <thead>
             <tr>
@@ -67,7 +67,7 @@ export function LeaderboardPage() {
             ))}
           </tbody>
         </table>
-      )}
+      </PageState>
     </section>
   );
 }

@@ -10,6 +10,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   'Malformed request body': 'Некорректное тело запроса',
   'Resource not found': 'Ресурс не найден',
   'No ACTIVE or STARTING game session configured': 'Нет активной или запускаемой игровой сессии',
+  'Insufficient M-coin balance': 'Недостаточно М-коинов',
+  'Cannot transfer coins to yourself': 'Нельзя переводить монеты самому себе',
+  'User is not a participant of this game session': 'Игрок не участник текущей сессии',
 };
 
 export function translateError(message: string): string {

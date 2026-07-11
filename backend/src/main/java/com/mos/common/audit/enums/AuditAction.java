@@ -3,6 +3,7 @@ package com.mos.common.audit.enums;
 public enum AuditAction {
     COIN_CREDIT,
     COIN_DEBIT,
+    COIN_TRANSFER,
     ITEM_GRANT,
     ITEM_TRANSFER,
     QR_SCAN,

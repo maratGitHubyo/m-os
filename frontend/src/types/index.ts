@@ -69,7 +69,24 @@ export type CoinTransactionType =
   | 'QR'
   | 'QUEST'
   | 'SECRET'
-  | 'AUCTION';
+  | 'AUCTION'
+  | 'TRANSFER_OUT'
+  | 'TRANSFER_IN';
+
+export interface CoinTransfer {
+  id: string;
+  senderUserId: string;
+  senderNickname: string;
+  receiverUserId: string;
+  receiverNickname: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface CreateCoinTransferRequest {
+  receiverUserId: string;
+  amount: number;
+}
 
 export interface CoinTransaction {
   id: string;

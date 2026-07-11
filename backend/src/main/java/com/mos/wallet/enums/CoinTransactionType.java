@@ -7,5 +7,7 @@ public enum CoinTransactionType {
     QR,
     QUEST,
     SECRET,
-    AUCTION
+    AUCTION,
+    TRANSFER_OUT,
+    TRANSFER_IN
 }

@@ -58,6 +58,22 @@ public class GlobalExceptionHandler {
         return error(request, HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(CoinTransferSelfException.class)
+    public ResponseEntity<ErrorResponse> handleCoinTransferSelf(
+            CoinTransferSelfException ex,
+            HttpServletRequest request
+    ) {
+        return error(request, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(CoinTransferUserNotInSessionException.class)
+    public ResponseEntity<ErrorResponse> handleCoinTransferUserNotInSession(
+            CoinTransferUserNotInSessionException ex,
+            HttpServletRequest request
+    ) {
+        return error(request, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(InvalidAmountException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAmount(
             InvalidAmountException ex,

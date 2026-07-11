@@ -2,6 +2,8 @@ package com.mos.wallet.service;
 
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
+import com.mos.common.exception.CoinTransferSelfException;
+import com.mos.common.exception.CoinTransferUserNotInSessionException;
 import com.mos.common.exception.ConcurrentModificationException;
 import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.InvalidAmountException;
@@ -12,6 +14,10 @@ import com.mos.wallet.entity.Wallet;
 import com.mos.wallet.enums.CoinTransactionType;
 import com.mos.wallet.repository.CoinTransactionRepository;
 import com.mos.wallet.repository.WalletRepository;
+import com.mos.wallet.transfer.entity.CoinTransfer;
+import com.mos.wallet.transfer.repository.CoinTransferRepository;
+import com.mos.session.entity.SessionParticipant;
+import com.mos.session.repository.SessionParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
@@ -29,6 +35,8 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final CoinTransactionRepository coinTransactionRepository;
     private final AuditService auditService;
+    private final CoinTransferRepository coinTransferRepository;
+    private final SessionParticipantRepository sessionParticipantRepository;
 
     @Transactional(readOnly = true)
     public WalletResponse getWallet(UUID userId, UUID gameSessionId) {
@@ -109,6 +117,71 @@ public class WalletService {
     ) {
         validateAmount(amount);
         return applyBalanceChangeWithoutAudit(userId, gameSessionId, amount, type, description, referenceId);
+    }
+
+    @Transactional
+    public CoinTransfer transferCoins(
+            UUID senderUserId,
+            UUID receiverUserId,
+            Long amount,
+            UUID gameSessionId
+    ) {
+        if (senderUserId.equals(receiverUserId)) {
+            throw new CoinTransferSelfException();
+        }
+
+        validateAmount(amount);
+
+        SessionParticipant sender = sessionParticipantRepository
+                .findByUserIdAndGameSessionId(senderUserId, gameSessionId)
+                .orElseThrow(CoinTransferUserNotInSessionException::new);
+        SessionParticipant receiver = sessionParticipantRepository
+                .findByUserIdAndGameSessionId(receiverUserId, gameSessionId)
+                .orElseThrow(CoinTransferUserNotInSessionException::new);
+
+        Wallet senderWallet = getOrCreateWallet(senderUserId, gameSessionId);
+        if (senderWallet.getBalance() < amount) {
+            throw new InsufficientBalanceException();
+        }
+
+        CoinTransfer transfer = coinTransferRepository.save(CoinTransfer.builder()
+                .gameSessionId(gameSessionId)
+                .senderUserId(senderUserId)
+                .receiverUserId(receiverUserId)
+                .amount(amount)
+                .build());
+
+        String transferReferenceId = transfer.getId().toString();
+        String senderDescription = "Transfer to " + receiver.getNicknameSnapshot();
+        String receiverDescription = "Transfer from " + sender.getNicknameSnapshot();
+
+        applyBalanceChangeWithoutAudit(
+                senderUserId,
+                gameSessionId,
+                -amount,
+                CoinTransactionType.TRANSFER_OUT,
+                senderDescription,
+                transferReferenceId
+        );
+        applyBalanceChangeWithoutAudit(
+                receiverUserId,
+                gameSessionId,
+                amount,
+                CoinTransactionType.TRANSFER_IN,
+                receiverDescription,
+                transferReferenceId
+        );
+
+        auditService.log(
+                senderUserId,
+                gameSessionId,
+                AuditAction.COIN_TRANSFER,
+                "CoinTransfer",
+                transfer.getId().toString(),
+                "Coin transfer completed"
+        );
+
+        return transfer;
     }
 
     private CoinTransaction applyBalanceChangeWithoutAudit(

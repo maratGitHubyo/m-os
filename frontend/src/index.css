@@ -326,6 +326,30 @@ a {
   margin-bottom: 1.5rem;
 }
 
+.wallet-transfer {
+  margin-bottom: 1.5rem;
+}
+
+.wallet-transfer__form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.wallet-transfer__form .form-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.wallet-transfer__form select,
+.wallet-transfer__form input {
+  border: 1px solid #2f3336;
+  border-radius: 8px;
+  background: #0f1419;
+  color: #e7e9ea;
+  padding: 0.55rem 0.75rem;
+}
+
 .transaction-list {
   list-style: none;
   margin: 0;

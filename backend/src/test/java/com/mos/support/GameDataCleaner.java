@@ -27,6 +27,7 @@ import com.mos.user.repository.UserRepository;
 import com.mos.victory.repository.VictoryConditionRepository;
 import com.mos.wallet.repository.CoinTransactionRepository;
 import com.mos.wallet.repository.WalletRepository;
+import com.mos.wallet.transfer.repository.CoinTransferRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,7 @@ public class GameDataCleaner {
     private final PlayerItemRepository playerItemRepository;
     private final ItemTemplateRepository itemTemplateRepository;
     private final CoinTransactionRepository coinTransactionRepository;
+    private final CoinTransferRepository coinTransferRepository;
     private final WalletRepository walletRepository;
     private final PlayerScoreRepository playerScoreRepository;
     private final ScoreTransactionRepository scoreTransactionRepository;
@@ -90,6 +92,7 @@ public class GameDataCleaner {
         playerItemRepository.deleteAllInBatch();
         itemTemplateRepository.deleteAllInBatch();
         coinTransactionRepository.deleteAllInBatch();
+        coinTransferRepository.deleteAllInBatch();
         walletRepository.deleteAllInBatch();
         playerScoreRepository.deleteAllInBatch();
         scoreTransactionRepository.deleteAllInBatch();

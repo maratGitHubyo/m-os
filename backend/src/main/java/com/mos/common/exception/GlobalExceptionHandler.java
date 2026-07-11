@@ -142,6 +142,18 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.NOT_IMPLEMENTED.value(), "Not Implemented", ex.getMessage()));
     }
 
+    @ExceptionHandler(LeaderboardDisabledException.class)
+    public ResponseEntity<ErrorResponse> handleLeaderboardDisabled(LeaderboardDisabledException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientScoreException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientScore(InsufficientScoreException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

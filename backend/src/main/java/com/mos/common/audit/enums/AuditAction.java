@@ -11,5 +11,7 @@ public enum AuditAction {
     SECRET_REDEEM,
     ADMIN_ACTION,
     LOCATION_DISCOVER,
-    SCORE_AWARD
+    SCORE_AWARD,
+    SCORE_ADD,
+    SCORE_SUBTRACT
 }

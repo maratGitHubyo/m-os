@@ -112,6 +112,36 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
     }
 
+    @ExceptionHandler(SecretNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSecretNotFound(SecretNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SecretNotOwnedException.class)
+    public ResponseEntity<ErrorResponse> handleSecretNotOwned(SecretNotOwnedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SecretAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleSecretAlreadyUsed(SecretAlreadyUsedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidSecretRewardException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidSecretReward(InvalidSecretRewardException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SecretRewardNotImplementedException.class)
+    public ResponseEntity<ErrorResponse> handleSecretRewardNotImplemented(SecretRewardNotImplementedException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ErrorResponse.of(HttpStatus.NOT_IMPLEMENTED.value(), "Not Implemented", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

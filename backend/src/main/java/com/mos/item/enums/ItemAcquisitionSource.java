@@ -5,5 +5,6 @@ public enum ItemAcquisitionSource {
     TRADE,
     QUEST,
     ADMIN,
-    TRANSFER
+    TRANSFER,
+    SECRET
 }

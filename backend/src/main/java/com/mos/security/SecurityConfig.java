@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
-                                "/api/inventory/**").authenticated()
+                                "/api/inventory/**", "/api/locations/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex

@@ -98,6 +98,61 @@ public class WalletService {
         return applyBalanceChange(userId, gameSessionId, -amount, type, description, performedByUserId, auditAction, referenceId);
     }
 
+    @Transactional
+    public CoinTransaction creditWithoutAudit(
+            UUID userId,
+            UUID gameSessionId,
+            Long amount,
+            CoinTransactionType type,
+            String referenceId,
+            String description
+    ) {
+        validateAmount(amount);
+        return applyBalanceChangeWithoutAudit(userId, gameSessionId, amount, type, description, referenceId);
+    }
+
+    private CoinTransaction applyBalanceChangeWithoutAudit(
+            UUID userId,
+            UUID gameSessionId,
+            long signedAmount,
+            CoinTransactionType type,
+            String description,
+            String referenceId
+    ) {
+        if (signedAmount == 0) {
+            throw new InvalidAmountException();
+        }
+        if (signedAmount > 0) {
+            validateAmount(signedAmount);
+        } else {
+            validateAmount(-signedAmount);
+        }
+
+        Wallet wallet = getOrCreateWallet(userId, gameSessionId);
+        long newBalance = wallet.getBalance() + signedAmount;
+
+        if (newBalance < 0) {
+            throw new InsufficientBalanceException();
+        }
+
+        wallet.setBalance(newBalance);
+
+        try {
+            walletRepository.save(wallet);
+        } catch (OptimisticLockingFailureException ex) {
+            throw new ConcurrentModificationException();
+        }
+
+        return coinTransactionRepository.save(CoinTransaction.builder()
+                .userId(userId)
+                .gameSessionId(gameSessionId)
+                .amount(signedAmount)
+                .type(type)
+                .referenceId(referenceId)
+                .description(description)
+                .build());
+    }
+
     private CoinTransaction applyBalanceChange(
             UUID userId,
             UUID gameSessionId,

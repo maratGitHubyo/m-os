@@ -97,6 +97,29 @@ public class ItemService {
     }
 
     @Transactional
+    public PlayerItemResponse grantItemFromReward(
+            UUID targetUserId,
+            UUID itemTemplateId,
+            UUID gameSessionId,
+            ItemAcquisitionSource source
+    ) {
+        ItemTemplate template = getTemplateForSession(itemTemplateId, gameSessionId);
+        ensureParticipant(targetUserId, gameSessionId);
+        ensureUniqueConstraint(template);
+
+        PlayerItem playerItem = playerItemRepository.save(PlayerItem.builder()
+                .itemTemplate(template)
+                .ownerId(targetUserId)
+                .gameSessionId(gameSessionId)
+                .acquiredFrom(source)
+                .build());
+
+        recordOwnershipHistory(playerItem, null, targetUserId, gameSessionId, OwnershipTransferReason.GRANT);
+
+        return PlayerItemResponse.from(playerItem);
+    }
+
+    @Transactional
     public PlayerItemResponse transferItem(
             UUID playerItemId,
             UUID fromUserId,

@@ -154,6 +154,12 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
     }
 
+    @ExceptionHandler(GameEventNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleGameEventNotFound(GameEventNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

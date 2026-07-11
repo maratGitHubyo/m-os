@@ -38,10 +38,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
                                 "/api/inventory/**", "/api/locations/**", "/api/qr/**",
-                                "/api/secrets/**", "/api/score/**", "/api/leaderboard").authenticated()
+                                "/api/secrets/**", "/api/score/**", "/api/leaderboard",
+                                "/api/events/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex

@@ -12,8 +12,10 @@ import com.mos.location.entity.LocationPoint;
 import com.mos.location.entity.PlayerLocationDiscovery;
 import com.mos.location.repository.LocationPointRepository;
 import com.mos.location.repository.PlayerLocationDiscoveryRepository;
+import com.mos.quest.service.QuestService;
 import com.mos.victory.service.VictoryConditionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +26,27 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class LocationService {
 
     private final LocationPointRepository locationPointRepository;
     private final PlayerLocationDiscoveryRepository playerLocationDiscoveryRepository;
     private final AuditService auditService;
     private final VictoryConditionService victoryConditionService;
+    private final QuestService questService;
+
+    public LocationService(
+            LocationPointRepository locationPointRepository,
+            PlayerLocationDiscoveryRepository playerLocationDiscoveryRepository,
+            AuditService auditService,
+            VictoryConditionService victoryConditionService,
+            @Lazy QuestService questService
+    ) {
+        this.locationPointRepository = locationPointRepository;
+        this.playerLocationDiscoveryRepository = playerLocationDiscoveryRepository;
+        this.auditService = auditService;
+        this.victoryConditionService = victoryConditionService;
+        this.questService = questService;
+    }
 
     @Transactional
     public AdminLocationPointResponse createLocation(UUID gameSessionId, CreateLocationRequest request) {
@@ -124,6 +140,7 @@ public class LocationService {
         );
 
         victoryConditionService.checkAfterGameDataChange(userId, gameSessionId);
+        questService.updateProgressAfterLocationDiscover(userId, gameSessionId);
 
         return LocationPointResponse.forPlayer(location, true);
     }

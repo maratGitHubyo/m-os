@@ -10,6 +10,8 @@ import com.mos.item.service.ItemService;
 import com.mos.location.entity.LocationPoint;
 import com.mos.location.repository.LocationPointRepository;
 import com.mos.location.service.LocationService;
+import com.mos.numbers.repository.CollectibleNumberRepository;
+import com.mos.numbers.repository.PlayerNumberRepository;
 import com.mos.session.entity.GameSession;
 import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.repository.GameConfigRepository;
@@ -83,6 +85,12 @@ class VictoryIntegrationTest {
     private LocationService locationService;
 
     @Autowired
+    private CollectibleNumberRepository collectibleNumberRepository;
+
+    @Autowired
+    private PlayerNumberRepository playerNumberRepository;
+
+    @Autowired
     private VictoryWebSocketPublisher victoryWebSocketPublisher;
 
     @MockitoBean
@@ -92,6 +100,9 @@ class VictoryIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        victoryConditionRepository.deleteAll();
+        playerNumberRepository.deleteAll();
+        collectibleNumberRepository.deleteAll();
         adminToken = login("admin", "admin123");
     }
 
@@ -255,10 +266,13 @@ class VictoryIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
+        int firstValue = 10_000 + java.util.concurrent.ThreadLocalRandom.current().nextInt(400_000);
+        int secondValue = firstValue + 1;
+
         var firstNumber = mockMvc.perform(post("/api/admin/numbers")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numberValue\":7}"))
+                        .content("{\"numberValue\":" + firstValue + "}"))
                 .andExpect(status().isOk())
                 .andReturn();
         UUID firstNumberId = UUID.fromString(
@@ -268,7 +282,7 @@ class VictoryIntegrationTest {
         var secondNumber = mockMvc.perform(post("/api/admin/numbers")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numberValue\":13}"))
+                        .content("{\"numberValue\":" + secondValue + "}"))
                 .andExpect(status().isOk())
                 .andReturn();
         UUID secondNumberId = UUID.fromString(

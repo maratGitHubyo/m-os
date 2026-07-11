@@ -51,17 +51,25 @@ class NumbersIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        auditLogRepository.deleteAll();
+        playerNumberRepository.deleteAll();
+        collectibleNumberRepository.deleteAll();
         adminToken = login("admin", "admin123");
+    }
+
+    private int uniqueNumberValue() {
+        return 10_000 + java.util.concurrent.ThreadLocalRandom.current().nextInt(900_000);
     }
 
     @Test
     void adminCreatesCollectibleNumber() throws Exception {
+        int numberValue = uniqueNumberValue();
         mockMvc.perform(post("/api/admin/numbers")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numberValue\":42}"))
+                        .content("{\"numberValue\":" + numberValue + "}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.numberValue").value(42))
+                .andExpect(jsonPath("$.numberValue").value(numberValue))
                 .andExpect(jsonPath("$.gameSessionId").value(GAME_SESSION_ID.toString()));
 
         assertThat(collectibleNumberRepository.findAll()).hasSize(1);
@@ -69,27 +77,29 @@ class NumbersIntegrationTest {
 
     @Test
     void duplicateNumberValueRejected() throws Exception {
+        int numberValue = uniqueNumberValue();
         mockMvc.perform(post("/api/admin/numbers")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numberValue\":7}"))
+                        .content("{\"numberValue\":" + numberValue + "}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/admin/numbers")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"numberValue\":7}"))
+                        .content("{\"numberValue\":" + numberValue + "}"))
                 .andExpect(status().isConflict());
     }
 
     @Test
     void adminGrantsNumberToPlayer() throws Exception {
-        UUID numberId = createNumber(11);
+        int numberValue = uniqueNumberValue();
+        UUID numberId = createNumber(numberValue);
 
         mockMvc.perform(post("/api/admin/numbers/" + numberId + "/grant/" + ADMIN_USER_ID)
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.numberValue").value(11))
+                .andExpect(jsonPath("$.numberValue").value(numberValue))
                 .andExpect(jsonPath("$.userId").value(ADMIN_USER_ID.toString()));
 
         assertThat(playerNumberRepository.findAll()).hasSize(1);
@@ -99,7 +109,7 @@ class NumbersIntegrationTest {
 
     @Test
     void grantNumberIsIdempotent() throws Exception {
-        UUID numberId = createNumber(5);
+        UUID numberId = createNumber(uniqueNumberValue());
 
         mockMvc.perform(post("/api/admin/numbers/" + numberId + "/grant/" + ADMIN_USER_ID)
                         .header("Authorization", "Bearer " + adminToken))
@@ -116,20 +126,21 @@ class NumbersIntegrationTest {
 
     @Test
     void playerGetsMyNumbers() throws Exception {
-        UUID numberId = createNumber(3);
+        int numberValue = uniqueNumberValue();
+        UUID numberId = createNumber(numberValue);
         grantNumber(numberId);
 
         mockMvc.perform(get("/api/numbers/me")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].numberValue").value(3))
+                .andExpect(jsonPath("$[0].numberValue").value(numberValue))
                 .andExpect(jsonPath("$[0].userId").value(ADMIN_USER_ID.toString()));
     }
 
     @Test
     void playerGetsCollectionProgress() throws Exception {
-        UUID firstNumberId = createNumber(1);
-        UUID secondNumberId = createNumber(2);
+        UUID firstNumberId = createNumber(uniqueNumberValue());
+        UUID secondNumberId = createNumber(uniqueNumberValue());
         grantNumber(firstNumberId);
 
         mockMvc.perform(get("/api/numbers/progress")
@@ -148,7 +159,7 @@ class NumbersIntegrationTest {
 
     @Test
     void grantNumberFromAnotherSessionRejected() throws Exception {
-        UUID numberId = createNumber(99);
+        UUID numberId = createNumber(uniqueNumberValue());
 
         mockMvc.perform(post("/api/admin/numbers/" + numberId + "/grant/" + UUID.randomUUID())
                         .header("Authorization", "Bearer " + adminToken))

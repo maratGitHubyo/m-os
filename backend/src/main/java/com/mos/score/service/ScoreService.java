@@ -13,10 +13,12 @@ import com.mos.score.entity.ScoreTransaction;
 import com.mos.score.enums.ScoreCategory;
 import com.mos.score.repository.PlayerScoreRepository;
 import com.mos.score.repository.ScoreTransactionRepository;
+import com.mos.quest.service.QuestService;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.SessionParticipantRepository;
 import com.mos.victory.service.VictoryConditionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ScoreService {
 
     private final PlayerScoreRepository playerScoreRepository;
@@ -36,6 +37,25 @@ public class ScoreService {
     private final GameConfigRepository gameConfigRepository;
     private final AuditService auditService;
     private final VictoryConditionService victoryConditionService;
+    private final QuestService questService;
+
+    public ScoreService(
+            PlayerScoreRepository playerScoreRepository,
+            ScoreTransactionRepository scoreTransactionRepository,
+            SessionParticipantRepository sessionParticipantRepository,
+            GameConfigRepository gameConfigRepository,
+            AuditService auditService,
+            VictoryConditionService victoryConditionService,
+            @Lazy QuestService questService
+    ) {
+        this.playerScoreRepository = playerScoreRepository;
+        this.scoreTransactionRepository = scoreTransactionRepository;
+        this.sessionParticipantRepository = sessionParticipantRepository;
+        this.gameConfigRepository = gameConfigRepository;
+        this.auditService = auditService;
+        this.victoryConditionService = victoryConditionService;
+        this.questService = questService;
+    }
 
     @Transactional
     public ScoreTransactionResponse addPoints(
@@ -187,6 +207,7 @@ public class ScoreService {
         );
 
         victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
+        questService.updateProgressAfterScoreChange(targetUserId, gameSessionId, category);
 
         return ScoreTransactionResponse.from(transaction);
     }

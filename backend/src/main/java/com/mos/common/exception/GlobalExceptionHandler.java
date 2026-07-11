@@ -202,6 +202,36 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
     }
 
+    @ExceptionHandler(TradeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTradeNotFound(TradeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), "Not Found", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TradeNotParticipantException.class)
+    public ResponseEntity<ErrorResponse> handleTradeNotParticipant(TradeNotParticipantException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TradeInvalidStateException.class)
+    public ResponseEntity<ErrorResponse> handleTradeInvalidState(TradeInvalidStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TradeItemNotOwnedException.class)
+    public ResponseEntity<ErrorResponse> handleTradeItemNotOwned(TradeItemNotOwnedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "Forbidden", ex.getMessage()));
+    }
+
+    @ExceptionHandler(TradeInsufficientCoinsException.class)
+    public ResponseEntity<ErrorResponse> handleTradeInsufficientCoins(TradeInsufficientCoinsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -40,6 +40,14 @@ export function AppLayout() {
               {item.label}
             </NavLink>
           ))}
+          {user?.role === 'ADMIN' && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => (isActive ? 'app-nav__link app-nav__link--active' : 'app-nav__link')}
+            >
+              Admin
+            </NavLink>
+          )}
           <button type="button" className="app-nav__logout" onClick={handleLogout}>
             Logout
           </button>

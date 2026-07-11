@@ -4,6 +4,7 @@ import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
+import { formatEnum, questStatus, questType, translateError, ui } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { Quest } from '../../types';
 
@@ -35,7 +36,9 @@ export function QuestsPage() {
       const data = await fetchAdminQuests();
       setQuests(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load quests');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось загрузить квесты',
+      );
     } finally {
       setLoading(false);
     }
@@ -75,7 +78,7 @@ export function QuestsPage() {
           targetConfig,
           status,
         });
-        showToast('Quest updated');
+        showToast('Квест обновлён');
       } else {
         await createQuest({
           title,
@@ -84,12 +87,15 @@ export function QuestsPage() {
           targetConfig,
           status,
         });
-        showToast('Quest created');
+        showToast('Квест создан');
       }
       resetForm();
       await load();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Quest save failed', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось сохранить квест',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -97,17 +103,17 @@ export function QuestsPage() {
 
   return (
     <section>
-      <PageHeader title="Quests" description="Create and edit quest definitions." />
+      <PageHeader title="Квесты" description="Создание и редактирование квестов." />
 
-      <FormCard title={editingId ? 'Edit quest' : 'Create quest'}>
+      <FormCard title={editingId ? 'Редактировать квест' : 'Создать квест'}>
         <form className="admin-form-grid" onSubmit={(event) => void handleSubmit(event)}>
           <label className="form-field">
-            <span>Title</span>
+            <span>Название</span>
             <input value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
           {!editingId && (
             <label className="form-field">
-              <span>Type</span>
+              <span>Тип</span>
               <select
                 className="form-select"
                 value={type}
@@ -115,59 +121,64 @@ export function QuestsPage() {
               >
                 {questTypes.map((value) => (
                   <option key={value} value={value}>
-                    {value}
+                    {formatEnum(value, questType)}
                   </option>
                 ))}
               </select>
             </label>
           )}
           <label className="form-field form-field--wide">
-            <span>Description</span>
+            <span>Описание</span>
             <input value={description} onChange={(event) => setDescription(event.target.value)} />
           </label>
           <label className="form-field form-field--wide">
-            <span>Target config (JSON)</span>
+            <span>Цель (JSON)</span>
             <input value={targetJson} onChange={(event) => setTargetJson(event.target.value)} />
           </label>
           <label className="form-field">
-            <span>Status</span>
+            <span>Статус</span>
             <select
               className="form-select"
               value={status}
               onChange={(event) => setStatus(event.target.value as 'ACTIVE' | 'DISABLED')}
             >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="DISABLED">DISABLED</option>
+              <option value="ACTIVE">{formatEnum('ACTIVE', questStatus)}</option>
+              <option value="DISABLED">Отключён</option>
             </select>
           </label>
           <div className="admin-actions">
             <button type="submit" className="btn btn--primary" disabled={submitting}>
-              {editingId ? 'Save changes' : 'Create quest'}
+              {editingId ? ui.save : 'Создать квест'}
             </button>
             {editingId && (
               <button type="button" className="btn btn--secondary" onClick={resetForm}>
-                Cancel edit
+                {ui.cancel}
               </button>
             )}
           </div>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Quest list</h2>
+      <h2 className="section-title">Список квестов</h2>
       <PageState loading={loading} error={error} empty={quests.length === 0}>
         <DataTable
           rows={quests}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'title', header: 'Title', render: (row) => row.title },
-            { key: 'type', header: 'Type', render: (row) => row.type },
-            { key: 'status', header: 'Status', render: (row) => row.status },
+            { key: 'title', header: 'Название', render: (row) => row.title },
+            { key: 'type', header: 'Тип', render: (row) => formatEnum(row.type, questType) },
+            {
+              key: 'status',
+              header: 'Статус',
+              render: (row) =>
+                row.status === 'DISABLED' ? 'Отключён' : formatEnum(row.status, questStatus),
+            },
             {
               key: 'actions',
               header: '',
               render: (row) => (
                 <button type="button" className="btn btn--secondary btn--small" onClick={() => startEdit(row)}>
-                  Edit
+                  {ui.edit}
                 </button>
               ),
             },

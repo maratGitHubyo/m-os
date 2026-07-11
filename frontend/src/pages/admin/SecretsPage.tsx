@@ -5,6 +5,7 @@ import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PlayerSelect } from '../../components/admin/PlayerSelect';
 import { useAdminPlayers } from '../../hooks/useAdminPlayers';
+import { translateError } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { PlayerSecretInfo } from '../../types/admin';
 
@@ -22,7 +23,7 @@ export function SecretsPage() {
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!userId) {
-      showToast('Select a player', 'error');
+      showToast('Выберите игрока', 'error');
       return;
     }
     setSubmitting(true);
@@ -40,12 +41,15 @@ export function SecretsPage() {
         rewardPayload,
       });
       setSecrets((current) => [...current, created]);
-      showToast(`Secret "${created.code}" created`);
+      showToast(`Секрет «${created.code}» создан`);
       setCode('');
       setTitle('');
       setDescription('');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create secret', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось создать секрет',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -54,30 +58,30 @@ export function SecretsPage() {
   return (
     <section>
       <PageHeader
-        title="Secrets"
-        description="Create player secrets. List shows secrets created in this browser session (no list API)."
+        title="Секреты"
+        description="Создание секретов для игроков. Список показывает секреты, созданные в этой сессии браузера (нет API списка)."
       />
 
-      <FormCard title="Create secret">
+      <FormCard title="Создать секрет">
         <form className="admin-form-grid" onSubmit={(event) => void handleCreate(event)}>
           <label className="form-field">
-            <span>Player</span>
+            <span>Игрок</span>
             <PlayerSelect players={players} value={userId} onChange={setUserId} required />
           </label>
           <label className="form-field">
-            <span>Code</span>
+            <span>Код</span>
             <input value={code} onChange={(event) => setCode(event.target.value)} required />
           </label>
           <label className="form-field">
-            <span>Title</span>
+            <span>Название</span>
             <input value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
           <label className="form-field form-field--wide">
-            <span>Description</span>
+            <span>Описание</span>
             <input value={description} onChange={(event) => setDescription(event.target.value)} required />
           </label>
           <label className="form-field">
-            <span>Reward type</span>
+            <span>Тип награды</span>
             <select
               className="form-select"
               value={rewardType}
@@ -93,27 +97,27 @@ export function SecretsPage() {
             </select>
           </label>
           <label className="form-field form-field--wide">
-            <span>Reward payload (JSON)</span>
+            <span>Награда (JSON)</span>
             <input value={payloadJson} onChange={(event) => setPayloadJson(event.target.value)} />
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Create secret
+            Создать секрет
           </button>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Secrets (session)</h2>
+      <h2 className="section-title">Секреты (сессия)</h2>
       {secrets.length === 0 ? (
-        <p className="empty-state">No secrets in this session yet.</p>
+        <p className="empty-state">В этой сессии пока нет секретов.</p>
       ) : (
         <DataTable
           rows={secrets}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'code', header: 'Code', render: (row) => row.code },
-            { key: 'title', header: 'Title', render: (row) => row.title },
-            { key: 'reward', header: 'Reward', render: (row) => row.rewardType },
-            { key: 'used', header: 'Used', render: (row) => (row.used ? 'Yes' : 'No') },
+            { key: 'code', header: 'Код', render: (row) => row.code },
+            { key: 'title', header: 'Название', render: (row) => row.title },
+            { key: 'reward', header: 'Награда', render: (row) => row.rewardType },
+            { key: 'used', header: 'Использован', render: (row) => (row.used ? 'Да' : 'Нет') },
           ]}
         />
       )}

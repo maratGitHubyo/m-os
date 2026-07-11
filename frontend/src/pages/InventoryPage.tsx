@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchInventory } from '../api/inventory';
 import { PageState } from '../components/ui/PageState';
+import { formatEnum, itemRarity, translateError } from '../i18n/ru';
 import type { Item } from '../types';
 
 export function InventoryPage() {
@@ -22,7 +23,9 @@ export function InventoryPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load inventory');
+          setError(
+            err instanceof Error ? translateError(err.message) : 'Не удалось загрузить инвентарь',
+          );
         }
       } finally {
         if (!cancelled) {
@@ -39,15 +42,15 @@ export function InventoryPage() {
 
   return (
     <section className="inventory-page">
-      <h1>Inventory</h1>
-      <p className="page-hint">Items you have collected in this session.</p>
+      <h1>Инвентарь</h1>
+      <p className="page-hint">Предметы, собранные вами в этой сессии.</p>
 
       <PageState
         loading={loading}
         error={error}
-        loadingLabel="Loading inventory…"
+        loadingLabel="Загрузка инвентаря…"
         empty={items.length === 0}
-        emptyMessage="Your inventory is empty."
+        emptyMessage="Инвентарь пуст."
       >
         <ul className="item-grid">
           {items.map((item) => (
@@ -65,10 +68,10 @@ export function InventoryPage() {
                 <div className="item-card__header">
                   <h2>{item.template.name}</h2>
                   <span className={`rarity rarity--${item.template.rarity.toLowerCase()}`}>
-                    {item.template.rarity}
+                    {formatEnum(item.template.rarity, itemRarity)}
                   </span>
                 </div>
-                <p>{item.template.description ?? 'No description'}</p>
+                <p>{item.template.description ?? 'Нет описания'}</p>
               </div>
             </li>
           ))}

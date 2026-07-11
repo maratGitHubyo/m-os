@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchMyTransactions, fetchMyWallet } from '../api/wallet';
 import { PageState } from '../components/ui/PageState';
+import { translateError } from '../i18n/ru';
 import type { CoinTransaction, Wallet } from '../types';
 
 export function WalletPage() {
@@ -28,7 +29,9 @@ export function WalletPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load wallet');
+          setError(
+            err instanceof Error ? translateError(err.message) : 'Не удалось загрузить кошелёк',
+          );
         }
       } finally {
         if (!cancelled) {
@@ -45,20 +48,20 @@ export function WalletPage() {
 
   return (
     <section className="wallet-page">
-      <h1>Wallet</h1>
-      <p className="page-hint">Your coin balance and transaction history.</p>
+      <h1>Кошелёк</h1>
+      <p className="page-hint">Баланс М-коинов и история транзакций.</p>
 
-      <PageState loading={loading} error={error} loadingLabel="Loading wallet…">
+      <PageState loading={loading} error={error} loadingLabel="Загрузка кошелька…">
         {wallet && (
         <>
           <article className="card wallet-balance">
-            <h2>Current balance</h2>
-            <p className="dashboard-stat">{wallet.balance} coins</p>
+            <h2>Текущий баланс</h2>
+            <p className="dashboard-stat">{wallet.balance} М-коинов</p>
           </article>
 
-          <h2 className="section-title">Transactions</h2>
+          <h2 className="section-title">Транзакции</h2>
           {transactions.length === 0 ? (
-            <p className="empty-state">No transactions yet.</p>
+            <p className="empty-state">Транзакций пока нет.</p>
           ) : (
             <ul className="transaction-list">
               {transactions.map((tx) => (

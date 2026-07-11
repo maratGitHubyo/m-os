@@ -5,6 +5,7 @@ import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PlayerSelect } from '../../components/admin/PlayerSelect';
 import { useAdminPlayers } from '../../hooks/useAdminPlayers';
+import { formatEnum, itemRarity, translateError } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { ItemTemplate } from '../../types/admin';
 
@@ -34,12 +35,15 @@ export function ItemsPage() {
         isUnique,
       });
       setTemplates((current) => [...current, created]);
-      showToast(`Template "${created.name}" created`);
+      showToast(`Шаблон «${created.name}» создан`);
       setName('');
       setDescription('');
       setImageUrl('');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create template', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось создать шаблон',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -48,15 +52,18 @@ export function ItemsPage() {
   const handleGrant = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!grantUserId || !grantTemplateId) {
-      showToast('Select player and template', 'error');
+      showToast('Выберите игрока и шаблон', 'error');
       return;
     }
     setSubmitting(true);
     try {
       await grantItem({ userId: grantUserId, itemTemplateId: grantTemplateId });
-      showToast('Item granted');
+      showToast('Предмет выдан');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to grant item', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось выдать предмет',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -65,18 +72,18 @@ export function ItemsPage() {
   return (
     <section>
       <PageHeader
-        title="Items"
-        description="Create item templates and grant items. Template list shows items created in this browser session (no list API)."
+        title="Предметы"
+        description="Создание шаблонов предметов и выдача игрокам. Список показывает шаблоны, созданные в этой сессии браузера (нет API списка)."
       />
 
-      <FormCard title="Create template">
+      <FormCard title="Создать шаблон">
         <form className="admin-form-grid" onSubmit={(event) => void handleCreateTemplate(event)}>
           <label className="form-field">
-            <span>Name</span>
+            <span>Название</span>
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
           <label className="form-field">
-            <span>Rarity</span>
+            <span>Редкость</span>
             <select
               className="form-select"
               value={rarity}
@@ -84,13 +91,13 @@ export function ItemsPage() {
             >
               {rarities.map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {formatEnum(value, itemRarity)}
                 </option>
               ))}
             </select>
           </label>
           <label className="form-field form-field--wide">
-            <span>Description</span>
+            <span>Описание</span>
             <input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -98,7 +105,7 @@ export function ItemsPage() {
             />
           </label>
           <label className="form-field">
-            <span>Image URL</span>
+            <span>URL изображения</span>
             <input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
           </label>
           <label className="form-field form-field--checkbox">
@@ -107,29 +114,29 @@ export function ItemsPage() {
               checked={isUnique}
               onChange={(event) => setIsUnique(event.target.checked)}
             />
-            <span>Unique item</span>
+            <span>Уникальный предмет</span>
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Create template
+            Создать шаблон
           </button>
         </form>
       </FormCard>
 
-      <FormCard title="Grant item">
+      <FormCard title="Выдать предмет">
         <form className="admin-form-grid" onSubmit={(event) => void handleGrant(event)}>
           <label className="form-field">
-            <span>Player</span>
+            <span>Игрок</span>
             <PlayerSelect players={players} value={grantUserId} onChange={setGrantUserId} required />
           </label>
           <label className="form-field">
-            <span>Template</span>
+            <span>Шаблон</span>
             <select
               className="form-select"
               value={grantTemplateId}
               onChange={(event) => setGrantTemplateId(event.target.value)}
               required
             >
-              <option value="">Select template…</option>
+              <option value="">Выберите шаблон…</option>
               {templates.map((template) => (
                 <option key={template.id} value={template.id}>
                   {template.name}
@@ -138,22 +145,26 @@ export function ItemsPage() {
             </select>
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Grant item
+            Выдать предмет
           </button>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Templates (session)</h2>
+      <h2 className="section-title">Шаблоны (сессия)</h2>
       {templates.length === 0 ? (
-        <p className="empty-state">No templates in this session yet.</p>
+        <p className="empty-state">В этой сессии пока нет шаблонов.</p>
       ) : (
         <DataTable
           rows={templates}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'name', header: 'Name', render: (row) => row.name },
-            { key: 'rarity', header: 'Rarity', render: (row) => row.rarity },
-            { key: 'unique', header: 'Unique', render: (row) => (row.isUnique ? 'Yes' : 'No') },
+            { key: 'name', header: 'Название', render: (row) => row.name },
+            {
+              key: 'rarity',
+              header: 'Редкость',
+              render: (row) => formatEnum(row.rarity, itemRarity),
+            },
+            { key: 'unique', header: 'Уникальный', render: (row) => (row.isUnique ? 'Да' : 'Нет') },
             { key: 'id', header: 'ID', render: (row) => <span className="mono">{row.id}</span> },
           ]}
         />

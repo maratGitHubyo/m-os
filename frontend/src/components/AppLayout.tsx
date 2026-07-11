@@ -3,14 +3,14 @@ import { EventNotifications } from './EventNotifications';
 import { logout, useAuth } from '../stores/authStore';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', end: true },
-  { to: '/map', label: 'Map' },
-  { to: '/inventory', label: 'Inventory' },
-  { to: '/wallet', label: 'Wallet' },
-  { to: '/quests', label: 'Quests' },
-  { to: '/score', label: 'Leaderboard' },
-  { to: '/victory', label: 'Victory' },
-  { to: '/events', label: 'Events' },
+  { to: '/', label: 'Главная', end: true },
+  { to: '/map', label: 'Карта' },
+  { to: '/inventory', label: 'Инвентарь' },
+  { to: '/wallet', label: 'Кошелёк' },
+  { to: '/quests', label: 'Квесты' },
+  { to: '/score', label: 'Рейтинг' },
+  { to: '/victory', label: 'Победа' },
+  { to: '/events', label: 'События' },
 ];
 
 export function AppLayout() {
@@ -45,11 +45,11 @@ export function AppLayout() {
               to="/admin"
               className={({ isActive }) => (isActive ? 'app-nav__link app-nav__link--active' : 'app-nav__link')}
             >
-              Admin
+              Админ
             </NavLink>
           )}
           <button type="button" className="app-nav__logout" onClick={handleLogout}>
-            Logout
+            Выйти
           </button>
         </nav>
       </header>

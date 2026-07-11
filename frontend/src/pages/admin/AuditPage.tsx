@@ -6,6 +6,7 @@ import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
 import { PlayerSelect } from '../../components/admin/PlayerSelect';
 import { useAdminPlayers } from '../../hooks/useAdminPlayers';
+import { translateError } from '../../i18n/ru';
 import type { AuditAction, AuditLogEntry } from '../../types/admin';
 
 const auditActions: AuditAction[] = [
@@ -62,7 +63,9 @@ export function AuditPage() {
       setLogs(response.content);
       setTotalPages(response.totalPages);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load audit logs');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось загрузить журнал аудита',
+      );
     } finally {
       setLoading(false);
     }
@@ -78,22 +81,22 @@ export function AuditPage() {
 
   return (
     <section>
-      <PageHeader title="Audit Log" description="Review session audit trail with filters." />
+      <PageHeader title="Журнал аудита" description="Просмотр журнала сессии с фильтрами." />
 
-      <FormCard title="Filters">
+      <FormCard title="Фильтры">
         <div className="admin-form-grid">
           <label className="form-field">
-            <span>User</span>
+            <span>Пользователь</span>
             <PlayerSelect players={players} value={userId} onChange={setUserId} />
           </label>
           <label className="form-field">
-            <span>Action</span>
+            <span>Действие</span>
             <select
               className="form-select"
               value={action}
               onChange={(event) => setAction(event.target.value as AuditAction | '')}
             >
-              <option value="">All actions</option>
+              <option value="">Все действия</option>
               {auditActions.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -102,7 +105,7 @@ export function AuditPage() {
             </select>
           </label>
           <label className="form-field">
-            <span>Page size</span>
+            <span>Размер страницы</span>
             <select
               className="form-select"
               value={size}
@@ -117,7 +120,7 @@ export function AuditPage() {
             </select>
           </label>
           <button type="button" className="btn btn--secondary" onClick={() => void load()}>
-            Apply filters
+            Применить фильтры
           </button>
         </div>
       </FormCard>
@@ -129,17 +132,17 @@ export function AuditPage() {
           columns={[
             {
               key: 'time',
-              header: 'Time',
+              header: 'Время',
               render: (row) => new Date(row.createdAt).toLocaleString(),
             },
             {
               key: 'user',
-              header: 'User',
+              header: 'Пользователь',
               render: (row) => playerNickname(row.userId),
             },
-            { key: 'action', header: 'Action', render: (row) => row.action },
-            { key: 'entity', header: 'Entity', render: (row) => `${row.entityType} #${row.entityId}` },
-            { key: 'description', header: 'Description', render: (row) => row.description },
+            { key: 'action', header: 'Действие', render: (row) => row.action },
+            { key: 'entity', header: 'Сущность', render: (row) => `${row.entityType} #${row.entityId}` },
+            { key: 'description', header: 'Описание', render: (row) => row.description },
           ]}
         />
 
@@ -150,10 +153,10 @@ export function AuditPage() {
             disabled={page <= 0}
             onClick={() => setPage((current) => current - 1)}
           >
-            Previous
+            Назад
           </button>
           <span>
-            Page {page + 1} of {Math.max(totalPages, 1)}
+            Страница {page + 1} из {Math.max(totalPages, 1)}
           </span>
           <button
             type="button"
@@ -161,7 +164,7 @@ export function AuditPage() {
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((current) => current + 1)}
           >
-            Next
+            Вперёд
           </button>
         </div>
       </PageState>

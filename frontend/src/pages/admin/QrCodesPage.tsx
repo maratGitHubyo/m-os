@@ -3,6 +3,7 @@ import { createQrCode } from '../../api/admin/qr';
 import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
+import { translateError } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { QrCodeInfo } from '../../types/admin';
 
@@ -33,10 +34,13 @@ export function QrCodesPage() {
         scanLimit: scanLimit ? Number(scanLimit) : null,
       });
       setCodes((current) => [...current, created]);
-      showToast(`QR "${created.code}" created`);
+      showToast(`QR-код «${created.code}» создан`);
       setCode('');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create QR', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось создать QR-код',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -45,18 +49,18 @@ export function QrCodesPage() {
   return (
     <section>
       <PageHeader
-        title="QR Codes"
-        description="Create QR codes. List shows codes created in this browser session (no list API)."
+        title="QR-коды"
+        description="Создание QR-кодов. Список показывает коды, созданные в этой сессии браузера (нет API списка)."
       />
 
-      <FormCard title="Create QR code">
+      <FormCard title="Создать QR-код">
         <form className="admin-form-grid" onSubmit={(event) => void handleCreate(event)}>
           <label className="form-field">
-            <span>Code</span>
+            <span>Код</span>
             <input value={code} onChange={(event) => setCode(event.target.value)} required />
           </label>
           <label className="form-field">
-            <span>Reward type</span>
+            <span>Тип награды</span>
             <select
               className="form-select"
               value={rewardType}
@@ -68,7 +72,7 @@ export function QrCodesPage() {
             </select>
           </label>
           <label className="form-field">
-            <span>Scan policy</span>
+            <span>Политика сканирования</span>
             <select
               className="form-select"
               value={scanPolicy}
@@ -80,35 +84,35 @@ export function QrCodesPage() {
             </select>
           </label>
           <label className="form-field form-field--wide">
-            <span>Reward payload (JSON)</span>
+            <span>Награда (JSON)</span>
             <input value={payloadJson} onChange={(event) => setPayloadJson(event.target.value)} />
           </label>
           <label className="form-field">
-            <span>Location point ID</span>
+            <span>ID точки локации</span>
             <input value={locationPointId} onChange={(event) => setLocationPointId(event.target.value)} />
           </label>
           <label className="form-field">
-            <span>Scan limit</span>
+            <span>Лимит сканирований</span>
             <input value={scanLimit} onChange={(event) => setScanLimit(event.target.value)} />
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Create QR
+            Создать QR-код
           </button>
         </form>
       </FormCard>
 
-      <h2 className="section-title">QR codes (session)</h2>
+      <h2 className="section-title">QR-коды (сессия)</h2>
       {codes.length === 0 ? (
-        <p className="empty-state">No QR codes in this session yet.</p>
+        <p className="empty-state">В этой сессии пока нет QR-кодов.</p>
       ) : (
         <DataTable
           rows={codes}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'code', header: 'Code', render: (row) => row.code },
-            { key: 'reward', header: 'Reward', render: (row) => row.rewardType },
-            { key: 'policy', header: 'Policy', render: (row) => row.scanPolicy },
-            { key: 'active', header: 'Active', render: (row) => (row.active ? 'Yes' : 'No') },
+            { key: 'code', header: 'Код', render: (row) => row.code },
+            { key: 'reward', header: 'Награда', render: (row) => row.rewardType },
+            { key: 'policy', header: 'Политика', render: (row) => row.scanPolicy },
+            { key: 'active', header: 'Активен', render: (row) => (row.active ? 'Да' : 'Нет') },
           ]}
         />
       )}

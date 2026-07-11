@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard } from '../api/score';
 import { PageState } from '../components/ui/PageState';
+import { translateError } from '../i18n/ru';
 import type { LeaderboardEntry } from '../types';
 
 export function LeaderboardPage() {
@@ -22,7 +23,9 @@ export function LeaderboardPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
+          setError(
+            err instanceof Error ? translateError(err.message) : 'Не удалось загрузить рейтинг',
+          );
         }
       } finally {
         if (!cancelled) {
@@ -39,22 +42,22 @@ export function LeaderboardPage() {
 
   return (
     <section className="leaderboard-page">
-      <h1>Leaderboard</h1>
-      <p className="page-hint">Top players by total score.</p>
+      <h1>Рейтинг</h1>
+      <p className="page-hint">Лучшие игроки по общему счёту.</p>
 
       <PageState
         loading={loading}
         error={error}
-        loadingLabel="Loading leaderboard…"
+        loadingLabel="Загрузка рейтинга…"
         empty={entries.length === 0}
-        emptyMessage="Leaderboard is empty."
+        emptyMessage="Рейтинг пуст."
       >
         <table className="leaderboard-table">
           <thead>
             <tr>
-              <th>Place</th>
-              <th>Player</th>
-              <th>Points</th>
+              <th>Место</th>
+              <th>Игрок</th>
+              <th>Очки</th>
             </tr>
           </thead>
           <tbody>

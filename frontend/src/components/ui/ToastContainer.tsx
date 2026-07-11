@@ -19,7 +19,7 @@ export function ToastContainer() {
           <button
             type="button"
             className="toast__close"
-            aria-label="Dismiss"
+            aria-label="Закрыть"
             onClick={() => dismissToast(toast.id)}
           >
             ×

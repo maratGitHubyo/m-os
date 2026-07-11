@@ -4,6 +4,7 @@ import { finishSession, pauseSession, startSession } from '../../api/admin/sessi
 import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
+import { formatEnum, sessionStatus, translateError, ui } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { GameSessionInfo } from '../../types';
 
@@ -23,7 +24,9 @@ export function SessionPage() {
       const data = await fetchCurrentSession();
       setSession(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load session');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось загрузить сессию',
+      );
     } finally {
       setLoading(false);
     }
@@ -47,26 +50,41 @@ export function SessionPage() {
             ? await pauseSession()
             : await finishSession();
       setSession(updated);
-      showToast(`Session ${pendingAction}ed successfully`);
+      showToast(
+        pendingAction === 'start'
+          ? 'Сессия запущена'
+          : pendingAction === 'pause'
+            ? 'Сессия приостановлена'
+            : 'Сессия завершена',
+      );
       setPendingAction(null);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Action failed', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось выполнить действие',
+        'error',
+      );
     } finally {
       setActing(false);
     }
   };
 
   const actionLabels: Record<SessionAction, string> = {
-    start: 'Start session',
-    pause: 'Pause session',
-    finish: 'Finish session',
+    start: 'Запустить сессию',
+    pause: 'Приостановить сессию',
+    finish: 'Завершить сессию',
+  };
+
+  const actionMessages: Record<SessionAction, string> = {
+    start: 'Вы уверены, что хотите запустить игровую сессию?',
+    pause: 'Вы уверены, что хотите приостановить игровую сессию?',
+    finish: 'Вы уверены, что хотите завершить игровую сессию?',
   };
 
   return (
     <section>
       <PageHeader
-        title="Session Control"
-        description="Start, pause, or finish the current game session."
+        title="Управление сессией"
+        description="Запуск, пауза или завершение текущей игровой сессии."
       />
 
       <PageState loading={loading} error={error} empty={!session}>
@@ -76,19 +94,19 @@ export function SessionPage() {
               <h2>{session.name}</h2>
               <dl className="data-list">
                 <div>
-                  <dt>Status</dt>
+                  <dt>Статус</dt>
                   <dd>
                     <span className={`badge badge--${session.status?.toLowerCase() ?? 'starting'}`}>
-                      {session.status}
+                      {session.status ? formatEnum(session.status, sessionStatus) : '—'}
                     </span>
                   </dd>
                 </div>
                 <div>
-                  <dt>Date</dt>
+                  <dt>Дата</dt>
                   <dd>{session.date ?? '—'}</dd>
                 </div>
                 <div>
-                  <dt>Session ID</dt>
+                  <dt>ID сессии</dt>
                   <dd className="mono">{session.id}</dd>
                 </div>
               </dl>
@@ -101,7 +119,7 @@ export function SessionPage() {
                 disabled={acting}
                 onClick={() => setPendingAction('start')}
               >
-                Start
+                Запустить
               </button>
               <button
                 type="button"
@@ -109,7 +127,7 @@ export function SessionPage() {
                 disabled={acting}
                 onClick={() => setPendingAction('pause')}
               >
-                Pause
+                Пауза
               </button>
               <button
                 type="button"
@@ -117,7 +135,7 @@ export function SessionPage() {
                 disabled={acting}
                 onClick={() => setPendingAction('finish')}
               >
-                Finish
+                Завершить
               </button>
             </div>
           </>
@@ -127,12 +145,8 @@ export function SessionPage() {
       <ConfirmDialog
         open={pendingAction !== null}
         title={pendingAction ? actionLabels[pendingAction] : ''}
-        message={
-          pendingAction
-            ? `Are you sure you want to ${pendingAction} the game session?`
-            : ''
-        }
-        confirmLabel={acting ? 'Working…' : 'Confirm'}
+        message={pendingAction ? actionMessages[pendingAction] : ''}
+        confirmLabel={acting ? 'Выполняется…' : ui.confirm}
         onCancel={() => setPendingAction(null)}
         onConfirm={() => void executeAction()}
       />

@@ -9,26 +9,26 @@ export function PlayersPage() {
   return (
     <section>
       <PageHeader
-        title="Players"
-        description="Session participants from leaderboard. Username, role, active, and coins require a dedicated list API."
+        title="Игроки"
+        description="Участники сессии из рейтинга. Логин, роль, активность и монеты требуют отдельного API списка."
       />
 
       <PageState
         loading={loading}
         error={error}
         empty={players.length === 0}
-        emptyMessage="No players on the leaderboard."
+        emptyMessage="В рейтинге нет игроков."
       >
         <DataTable
           rows={players}
           rowKey={(row) => row.userId}
           columns={[
-            { key: 'nickname', header: 'Nickname', render: (row) => row.nickname },
-            { key: 'username', header: 'Username', render: () => '—' },
-            { key: 'role', header: 'Role', render: () => '—' },
-            { key: 'active', header: 'Active', render: () => '—' },
-            { key: 'coins', header: 'Coins', render: () => '—' },
-            { key: 'score', header: 'Total score', render: (row) => row.totalScore },
+            { key: 'nickname', header: 'Никнейм', render: (row) => row.nickname },
+            { key: 'username', header: 'Логин', render: () => '—' },
+            { key: 'role', header: 'Роль', render: () => '—' },
+            { key: 'active', header: 'Активен', render: () => '—' },
+            { key: 'coins', header: 'М-коины', render: () => '—' },
+            { key: 'score', header: 'Общий счёт', render: (row) => row.totalScore },
           ]}
         />
       </PageState>

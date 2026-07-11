@@ -8,6 +8,7 @@ import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
+import { translateError, ui } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { LocationPoint } from '../../types';
 
@@ -32,7 +33,9 @@ export function LocationsPage() {
       const data = await fetchAdminLocations();
       setLocations(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load locations');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось загрузить локации',
+      );
     } finally {
       setLoading(false);
     }
@@ -75,7 +78,7 @@ export function LocationsPage() {
           y: Number(y),
           hidden,
         });
-        showToast('Location updated');
+        showToast('Локация обновлена');
       } else {
         await createLocation({
           name,
@@ -85,12 +88,15 @@ export function LocationsPage() {
           y: Number(y),
           hidden,
         });
-        showToast('Location created');
+        showToast('Локация создана');
       }
       resetForm();
       await load();
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Location save failed', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось сохранить локацию',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -98,20 +104,20 @@ export function LocationsPage() {
 
   return (
     <section>
-      <PageHeader title="Locations" description="Create and edit map locations." />
+      <PageHeader title="Локации" description="Создание и редактирование локаций на карте." />
 
-      <FormCard title={editingId ? 'Edit location' : 'Create location'}>
+      <FormCard title={editingId ? 'Редактировать локацию' : 'Создать локацию'}>
         <form className="admin-form-grid" onSubmit={(event) => void handleSubmit(event)}>
           <label className="form-field">
-            <span>Name</span>
+            <span>Название</span>
             <input value={name} onChange={(event) => setName(event.target.value)} required />
           </label>
           <label className="form-field">
-            <span>Zone</span>
+            <span>Зона</span>
             <input value={zone} onChange={(event) => setZone(event.target.value)} required />
           </label>
           <label className="form-field form-field--wide">
-            <span>Description</span>
+            <span>Описание</span>
             <input
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -128,27 +134,27 @@ export function LocationsPage() {
           </label>
           <label className="form-field form-field--checkbox">
             <input type="checkbox" checked={hidden} onChange={(event) => setHidden(event.target.checked)} />
-            <span>Hidden</span>
+            <span>Скрытая</span>
           </label>
           <div className="admin-actions">
             <button type="submit" className="btn btn--primary" disabled={submitting}>
-              {editingId ? 'Save changes' : 'Create location'}
+              {editingId ? ui.save : 'Создать локацию'}
             </button>
             {editingId && (
               <button type="button" className="btn btn--secondary" onClick={resetForm}>
-                Cancel edit
+                {ui.cancel}
               </button>
             )}
           </div>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Locations</h2>
+      <h2 className="section-title">Локации</h2>
       <PageState
         loading={loading}
         error={error}
         empty={locations.length === 0}
-        emptyMessage="No locations yet."
+        emptyMessage="Локаций пока нет."
       >
         <DataTable
           rows={locations}
@@ -156,22 +162,22 @@ export function LocationsPage() {
           columns={[
             {
               key: 'name',
-              header: 'Name',
-              render: (row) => row.name ?? (row.hidden ? '(hidden)' : '—'),
+              header: 'Название',
+              render: (row) => row.name ?? (row.hidden ? '(скрытая)' : '—'),
             },
-            { key: 'zone', header: 'Zone', render: (row) => row.zone },
+            { key: 'zone', header: 'Зона', render: (row) => row.zone },
             {
               key: 'coords',
-              header: 'Coords',
+              header: 'Координаты',
               render: (row) => `${row.x.toFixed(1)}%, ${row.y.toFixed(1)}%`,
             },
-            { key: 'hidden', header: 'Hidden', render: (row) => (row.hidden ? 'Yes' : 'No') },
+            { key: 'hidden', header: 'Скрытая', render: (row) => (row.hidden ? 'Да' : 'Нет') },
             {
               key: 'actions',
               header: '',
               render: (row) => (
                 <button type="button" className="btn btn--secondary btn--small" onClick={() => startEdit(row)}>
-                  Edit
+                  {ui.edit}
                 </button>
               ),
             },

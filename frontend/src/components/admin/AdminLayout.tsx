@@ -1,29 +1,29 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 const adminNavItems = [
-  { to: '/admin', label: 'Dashboard', end: true },
-  { to: '/admin/session', label: 'Session' },
-  { to: '/admin/players', label: 'Players' },
-  { to: '/admin/wallet', label: 'Wallet' },
-  { to: '/admin/score', label: 'Score' },
-  { to: '/admin/items', label: 'Items' },
-  { to: '/admin/locations', label: 'Locations' },
-  { to: '/admin/qr', label: 'QR Codes' },
-  { to: '/admin/secrets', label: 'Secrets' },
-  { to: '/admin/numbers', label: 'Numbers' },
-  { to: '/admin/quests', label: 'Quests' },
-  { to: '/admin/victory', label: 'Victory' },
-  { to: '/admin/events', label: 'Events' },
-  { to: '/admin/audit', label: 'Audit' },
+  { to: '/admin', label: 'Панель', end: true },
+  { to: '/admin/session', label: 'Сессия' },
+  { to: '/admin/players', label: 'Игроки' },
+  { to: '/admin/wallet', label: 'Кошелёк' },
+  { to: '/admin/score', label: 'Очки' },
+  { to: '/admin/items', label: 'Предметы' },
+  { to: '/admin/locations', label: 'Локации' },
+  { to: '/admin/qr', label: 'QR-коды' },
+  { to: '/admin/secrets', label: 'Секреты' },
+  { to: '/admin/numbers', label: 'Числа' },
+  { to: '/admin/quests', label: 'Квесты' },
+  { to: '/admin/victory', label: 'Победа' },
+  { to: '/admin/events', label: 'События' },
+  { to: '/admin/audit', label: 'Аудит' },
 ];
 
 export function AdminLayout() {
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <h2 className="admin-sidebar__title">Admin Panel</h2>
+        <h2 className="admin-sidebar__title">Панель администратора</h2>
         <NavLink to="/" className="admin-sidebar__back">
-          ← Back to game
+          ← Вернуться в игру
         </NavLink>
         <nav className="admin-sidebar__nav">
           {adminNavItems.map((item) => (

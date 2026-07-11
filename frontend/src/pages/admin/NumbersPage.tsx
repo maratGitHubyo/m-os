@@ -5,6 +5,7 @@ import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PlayerSelect } from '../../components/admin/PlayerSelect';
 import { useAdminPlayers } from '../../hooks/useAdminPlayers';
+import { translateError } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { CollectibleNumberInfo } from '../../types/admin';
 
@@ -22,9 +23,12 @@ export function NumbersPage() {
     try {
       const created = await createNumber({ numberValue: Number(numberValue) });
       setNumbers((current) => [...current, created]);
-      showToast(`Number ${created.numberValue} created`);
+      showToast(`Число ${created.numberValue} создано`);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to create number', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось создать число',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -33,15 +37,18 @@ export function NumbersPage() {
   const handleGrant = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!grantNumberId || !grantUserId) {
-      showToast('Select number and player', 'error');
+      showToast('Выберите число и игрока', 'error');
       return;
     }
     setSubmitting(true);
     try {
       await grantNumber(grantNumberId, grantUserId);
-      showToast('Number granted');
+      showToast('Число выдано');
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to grant number', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось выдать число',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -50,14 +57,14 @@ export function NumbersPage() {
   return (
     <section>
       <PageHeader
-        title="Numbers"
-        description="Create collectible numbers and grant to players. List shows numbers created in this session (no list API)."
+        title="Числа"
+        description="Создание коллекционных чисел и выдача игрокам. Список показывает числа, созданные в этой сессии (нет API списка)."
       />
 
-      <FormCard title="Create number">
+      <FormCard title="Создать число">
         <form className="admin-form-grid" onSubmit={(event) => void handleCreate(event)}>
           <label className="form-field">
-            <span>Number value</span>
+            <span>Значение числа</span>
             <input
               type="number"
               min={1}
@@ -67,22 +74,22 @@ export function NumbersPage() {
             />
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Create number
+            Создать число
           </button>
         </form>
       </FormCard>
 
-      <FormCard title="Grant number">
+      <FormCard title="Выдать число">
         <form className="admin-form-grid" onSubmit={(event) => void handleGrant(event)}>
           <label className="form-field">
-            <span>Number</span>
+            <span>Число</span>
             <select
               className="form-select"
               value={grantNumberId}
               onChange={(event) => setGrantNumberId(event.target.value)}
               required
             >
-              <option value="">Select number…</option>
+              <option value="">Выберите число…</option>
               {numbers.map((number) => (
                 <option key={number.id} value={number.id}>
                   #{number.numberValue}
@@ -91,28 +98,28 @@ export function NumbersPage() {
             </select>
           </label>
           <label className="form-field">
-            <span>Player</span>
+            <span>Игрок</span>
             <PlayerSelect players={players} value={grantUserId} onChange={setGrantUserId} required />
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Grant number
+            Выдать число
           </button>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Numbers (session)</h2>
+      <h2 className="section-title">Числа (сессия)</h2>
       {numbers.length === 0 ? (
-        <p className="empty-state">No numbers in this session yet.</p>
+        <p className="empty-state">В этой сессии пока нет чисел.</p>
       ) : (
         <DataTable
           rows={numbers}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'value', header: 'Value', render: (row) => row.numberValue },
+            { key: 'value', header: 'Значение', render: (row) => row.numberValue },
             { key: 'id', header: 'ID', render: (row) => <span className="mono">{row.id}</span> },
             {
               key: 'created',
-              header: 'Created',
+              header: 'Создано',
               render: (row) => new Date(row.createdAt).toLocaleString(),
             },
           ]}

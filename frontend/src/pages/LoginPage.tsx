@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { ApiError } from '../api/client';
+import { translateError } from '../i18n/ru';
 import { login as saveAuth } from '../stores/authStore';
 
 export function LoginPage() {
@@ -22,9 +23,11 @@ export function LoginPage() {
       navigate('/', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        setError('Invalid username or password');
+        setError(translateError('Invalid username or password'));
       } else {
-        setError(err instanceof Error ? err.message : 'Login failed');
+        setError(
+          err instanceof Error ? translateError(err.message) : 'Не удалось войти',
+        );
       }
     } finally {
       setLoading(false);
@@ -32,18 +35,18 @@ export function LoginPage() {
   };
 
   useEffect(() => {
-    document.title = 'Login — M-OS';
+    document.title = 'Вход — M-OS';
   }, []);
 
   return (
     <div className="login-page">
       <div className="login-card">
         <h1>M-OS</h1>
-        <p className="login-card__subtitle">Sign in to join the game</p>
+        <p className="login-card__subtitle">Войдите, чтобы присоединиться к игре</p>
 
         <form className="login-form" onSubmit={(event) => void handleSubmit(event)}>
           <label className="form-field">
-            <span>Username</span>
+            <span>Логин</span>
             <input
               type="text"
               autoComplete="username"
@@ -54,7 +57,7 @@ export function LoginPage() {
           </label>
 
           <label className="form-field">
-            <span>Password</span>
+            <span>Пароль</span>
             <input
               type="password"
               autoComplete="current-password"
@@ -67,11 +70,11 @@ export function LoginPage() {
           {error && <p className="status-error">{error}</p>}
 
           <button type="submit" className="btn btn--primary" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Вход…' : 'Войти'}
           </button>
         </form>
 
-        <p className="login-card__hint">Demo: alice/demo123 or admin/admin123</p>
+        <p className="login-card__hint">Демо: alice/demo123 или admin/admin123</p>
       </div>
     </div>
   );

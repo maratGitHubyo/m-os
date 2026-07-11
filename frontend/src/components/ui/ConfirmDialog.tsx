@@ -1,3 +1,5 @@
+import { ui } from '../../i18n/ru';
+
 interface ConfirmDialogProps {
   open: boolean;
   title: string;
@@ -13,8 +15,8 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = ui.confirm,
+  cancelLabel = ui.cancel,
   confirmVariant = 'primary',
   onConfirm,
   onCancel,

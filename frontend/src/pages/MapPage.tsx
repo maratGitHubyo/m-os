@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchCurrentSession, fetchLocations } from '../api/locations';
 import { GameMap } from '../components/GameMap';
 import { PageState } from '../components/ui/PageState';
+import { translateError } from '../i18n/ru';
 import type { LocationPoint } from '../types';
 
 export function MapPage() {
@@ -31,7 +32,9 @@ export function MapPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load map');
+          setError(
+            err instanceof Error ? translateError(err.message) : 'Не удалось загрузить карту',
+          );
           setLocations([]);
           setSelected(null);
         }
@@ -50,17 +53,17 @@ export function MapPage() {
 
   return (
     <section className="map-page">
-      <h1>Map</h1>
+      <h1>Карта</h1>
       <p className="page-hint">
-        Fog of war: hidden locations show zone and marker only until discovered.
+        Туман войны: скрытые локации показывают только зону и маркер, пока не будут открыты.
       </p>
 
       <PageState
         loading={loading}
         error={error}
-        loadingLabel="Loading map…"
+        loadingLabel="Загрузка карты…"
         empty={locations.length === 0}
-        emptyMessage="No locations on the map yet."
+        emptyMessage="На карте пока нет локаций."
       >
         <>
           <GameMap
@@ -72,15 +75,17 @@ export function MapPage() {
 
           {selected && (
             <article className="map-detail">
-              <h2>{selected.discovered || !selected.hidden ? selected.name : 'Unknown location'}</h2>
-              <p className="map-detail__zone">Zone: {selected.zone}</p>
+              <h2>
+                {selected.discovered || !selected.hidden ? selected.name : 'Неизвестная локация'}
+              </h2>
+              <p className="map-detail__zone">Зона: {selected.zone}</p>
               <p className="map-detail__coords">
-                Coordinates: {selected.x.toFixed(1)}%, {selected.y.toFixed(1)}%
+                Координаты: {selected.x.toFixed(1)}%, {selected.y.toFixed(1)}%
               </p>
               {selected.discovered || !selected.hidden ? (
                 <p>{selected.description}</p>
               ) : (
-                <p className="map-detail__fog">This location has not been discovered yet.</p>
+                <p className="map-detail__fog">Эта локация ещё не открыта.</p>
               )}
             </article>
           )}

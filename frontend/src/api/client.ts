@@ -1,4 +1,5 @@
 import { getToken } from '../stores/authStore';
+import { translateError } from '../i18n/ru';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
 
@@ -34,11 +35,11 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    let message = `Request failed: ${response.statusText}`;
+    let message = `Ошибка запроса: ${response.statusText}`;
     try {
       const body = (await response.json()) as { message?: string };
       if (body.message) {
-        message = body.message;
+        message = translateError(body.message);
       }
     } catch {
       // ignore parse errors

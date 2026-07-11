@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchVictoryConditions } from '../api/victory';
 import { PageState } from '../components/ui/PageState';
+import { formatEnum, translateError, victoryType } from '../i18n/ru';
 import type { VictoryCondition } from '../types';
-
-function formatType(type: VictoryCondition['type']): string {
-  return type.replaceAll('_', ' ').toLowerCase();
-}
 
 function progressPercent(condition: VictoryCondition): number | null {
   if (
@@ -40,7 +37,11 @@ export function VictoryPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load victory conditions');
+          setError(
+            err instanceof Error
+              ? translateError(err.message)
+              : 'Не удалось загрузить условия победы',
+          );
           setConditions([]);
         }
       } finally {
@@ -61,25 +62,25 @@ export function VictoryPage() {
 
   return (
     <section className="victory-page">
-      <h1>Victory Conditions</h1>
+      <h1>Условия победы</h1>
       <p className="page-hint">
-        Progress is calculated by the server. Complete any active condition to win.
+        Прогресс рассчитывается сервером. Выполните любое активное условие, чтобы победить.
       </p>
 
       <PageState
         loading={loading}
         error={error}
-        loadingLabel="Loading conditions…"
+        loadingLabel="Загрузка условий…"
         empty={conditions.length === 0}
-        emptyMessage="No victory conditions configured yet."
+        emptyMessage="Условия победы ещё не настроены."
       >
         <>
           <div className="victory-page__summary">
-            {myVictory && <p className="status-ok">You achieved a victory condition!</p>}
+            {myVictory && <p className="status-ok">Вы выполнили условие победы!</p>}
             {!myVictory && anyAchieved && (
-              <p className="victory-page__someone-won">A victory condition has been achieved.</p>
+              <p className="victory-page__someone-won">Условие победы уже выполнено.</p>
             )}
-            {!anyAchieved && <p className="victory-page__pending">No conditions achieved yet.</p>}
+            {!anyAchieved && <p className="victory-page__pending">Пока ни одно условие не выполнено.</p>}
           </div>
 
           <ul className="victory-list">
@@ -92,7 +93,9 @@ export function VictoryPage() {
                   className={`victory-card${condition.achieved ? ' victory-card--achieved' : ''}`}
                 >
                   <div className="victory-card__header">
-                    <span className="victory-card__type">{formatType(condition.type)}</span>
+                    <span className="victory-card__type">
+                      {formatEnum(condition.type, victoryType)}
+                    </span>
                     <span
                       className={
                         condition.achieved
@@ -100,7 +103,7 @@ export function VictoryPage() {
                           : 'victory-card__badge'
                       }
                     >
-                      {condition.achieved ? 'Achieved' : 'In progress'}
+                      {condition.achieved ? 'Выполнено' : 'В процессе'}
                     </span>
                   </div>
 
@@ -127,8 +130,8 @@ export function VictoryPage() {
 
                   {condition.achieved && condition.achievedAt && (
                     <p className="victory-card__meta">
-                      Achieved {new Date(condition.achievedAt).toLocaleString()}
-                      {condition.achievedByMe ? ' by you' : ''}
+                      Выполнено {new Date(condition.achievedAt).toLocaleString()}
+                      {condition.achievedByMe ? ' вами' : ''}
                     </p>
                   )}
                 </li>

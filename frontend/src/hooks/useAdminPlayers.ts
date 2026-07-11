@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchAdminPlayers } from '../api/admin/players';
+import { translateError } from '../i18n/ru';
 import type { AdminPlayerRow } from '../types/admin';
 
 export function useAdminPlayers() {
@@ -14,7 +15,11 @@ export function useAdminPlayers() {
       const data = await fetchAdminPlayers();
       setPlayers(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load players');
+      setError(
+        err instanceof Error
+          ? translateError(err.message)
+          : 'Не удалось загрузить игроков',
+      );
     } finally {
       setLoading(false);
     }

@@ -8,15 +8,17 @@ interface MapMarkerProps {
 
 export function MapMarker({ location, selected, onSelect }: MapMarkerProps) {
   const known = location.discovered || !location.hidden;
-  const label = known ? location.name ?? 'Unknown' : '?';
+  const label = known ? location.name ?? 'Неизвестно' : '?';
 
   return (
     <button
       type="button"
       className={`map-marker ${known ? 'map-marker--known' : 'map-marker--unknown'} ${selected ? 'map-marker--selected' : ''}`}
       style={{ left: `${location.x}%`, top: `${location.y}%` }}
-      title={known ? location.name ?? undefined : `${location.zone} — undiscovered`}
-      aria-label={known ? location.name ?? 'Location' : `Undiscovered location in ${location.zone}`}
+      title={known ? location.name ?? undefined : `${location.zone} — не открыта`}
+      aria-label={
+        known ? location.name ?? 'Локация' : `Неоткрытая локация в зоне ${location.zone}`
+      }
       onClick={() => onSelect(location)}
     >
       <span className="map-marker__dot" />
@@ -36,7 +38,7 @@ export function GameMap({ locations, mapImageUrl, selectedId, onSelect }: GameMa
   return (
     <div className="game-map">
       {mapImageUrl ? (
-        <img className="game-map__image" src={mapImageUrl} alt="Game map" />
+        <img className="game-map__image" src={mapImageUrl} alt="Игровая карта" />
       ) : (
         <div className="game-map__placeholder" aria-hidden="true" />
       )}

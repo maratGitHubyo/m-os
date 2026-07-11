@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchEvents } from '../api/events';
 import { PageState } from '../components/ui/PageState';
+import { eventStatus, formatEnum, gameEventType, translateError } from '../i18n/ru';
 import type { GameEvent } from '../types';
-
-function formatType(type: GameEvent['type']): string {
-  return type.replaceAll('_', ' ').toLowerCase();
-}
 
 export function EventsPage() {
   const [events, setEvents] = useState<GameEvent[]>([]);
@@ -26,7 +23,9 @@ export function EventsPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load events');
+          setError(
+            err instanceof Error ? translateError(err.message) : 'Не удалось загрузить события',
+          );
         }
       } finally {
         if (!cancelled) {
@@ -43,24 +42,28 @@ export function EventsPage() {
 
   return (
     <section className="events-page">
-      <h1>Events</h1>
-      <p className="page-hint">Scheduled and active game events. Live updates appear as notifications.</p>
+      <h1>События</h1>
+      <p className="page-hint">
+        Запланированные и активные игровые события. Обновления приходят в уведомлениях.
+      </p>
 
       <PageState
         loading={loading}
         error={error}
-        loadingLabel="Loading events…"
+        loadingLabel="Загрузка событий…"
         empty={events.length === 0}
-        emptyMessage="No events scheduled."
+        emptyMessage="Нет запланированных событий."
       >
         <ul className="event-list">
           {events.map((event) => (
             <li key={event.id} className="event-card">
               <div className="event-card__header">
                 <h2>{event.title}</h2>
-                <span className={`badge badge--${event.status.toLowerCase()}`}>{event.status}</span>
+                <span className={`badge badge--${event.status.toLowerCase()}`}>
+                  {formatEnum(event.status, eventStatus)}
+                </span>
               </div>
-              <p className="event-card__type">{formatType(event.type)}</p>
+              <p className="event-card__type">{formatEnum(event.type, gameEventType)}</p>
               {event.description && <p>{event.description}</p>}
               {event.startAt && (
                 <p className="event-card__meta">

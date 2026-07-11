@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { API_URL } from '../api/client';
+import { eventStatus, formatEnum } from '../i18n/ru';
 import { getToken, subscribe, useAuth } from '../stores/authStore';
 import type { GameEventBroadcast } from '../types';
 
@@ -11,8 +12,8 @@ interface EventNotification {
 }
 
 function formatNotification(payload: GameEventBroadcast): string {
-  const status = payload.status.toLowerCase();
-  return `${payload.title} ${status}`;
+  const status = formatEnum(payload.status, eventStatus);
+  return `${payload.title} — ${status}`;
 }
 
 export function EventNotifications() {

@@ -5,6 +5,7 @@ import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
 import { PlayerSelect } from '../../components/admin/PlayerSelect';
 import { useAdminPlayers } from '../../hooks/useAdminPlayers';
+import { translateError } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
 import type { AdminScoreChangeRequest } from '../../types/admin';
 
@@ -21,18 +22,18 @@ export function AdminScorePage() {
   const [userId, setUserId] = useState('');
   const [category, setCategory] = useState<AdminScoreChangeRequest['category']>('TOTAL');
   const [points, setPoints] = useState('10');
-  const [reason, setReason] = useState('Admin score adjustment');
+  const [reason, setReason] = useState('Корректировка очков администратором');
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = async (type: 'add' | 'subtract') => {
     if (!userId) {
-      showToast('Select a player', 'error');
+      showToast('Выберите игрока', 'error');
       return;
     }
 
     const parsedPoints = Number(points);
     if (!parsedPoints || parsedPoints < 1) {
-      showToast('Points must be at least 1', 'error');
+      showToast('Очки должны быть не менее 1', 'error');
       return;
     }
 
@@ -45,13 +46,16 @@ export function AdminScorePage() {
       };
       if (type === 'add') {
         await addPoints(userId, request);
-        showToast('Points added');
+        showToast('Очки добавлены');
       } else {
         await subtractPoints(userId, request);
-        showToast('Points subtracted');
+        showToast('Очки списаны');
       }
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Score operation failed', 'error');
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Ошибка операции с очками',
+        'error',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -59,17 +63,17 @@ export function AdminScorePage() {
 
   return (
     <section>
-      <PageHeader title="Score" description="Add or subtract points for players." />
+      <PageHeader title="Очки" description="Добавление и списание очков для игроков." />
 
       <PageState loading={loading} error={error} empty={players.length === 0}>
-        <FormCard title="Score adjustment">
+        <FormCard title="Корректировка очков">
           <div className="admin-form-grid">
             <label className="form-field">
-              <span>Player</span>
+              <span>Игрок</span>
               <PlayerSelect players={players} value={userId} onChange={setUserId} required />
             </label>
             <label className="form-field">
-              <span>Category</span>
+              <span>Категория</span>
               <select
                 className="form-select"
                 value={category}
@@ -85,7 +89,7 @@ export function AdminScorePage() {
               </select>
             </label>
             <label className="form-field">
-              <span>Points</span>
+              <span>Очки</span>
               <input
                 type="number"
                 min={1}
@@ -94,7 +98,7 @@ export function AdminScorePage() {
               />
             </label>
             <label className="form-field form-field--wide">
-              <span>Reason</span>
+              <span>Причина</span>
               <input
                 type="text"
                 value={reason}
@@ -109,7 +113,7 @@ export function AdminScorePage() {
               disabled={submitting}
               onClick={() => void handleChange('add')}
             >
-              + Points
+              + Очки
             </button>
             <button
               type="button"
@@ -117,7 +121,7 @@ export function AdminScorePage() {
               disabled={submitting}
               onClick={() => void handleChange('subtract')}
             >
-              − Points
+              − Очки
             </button>
           </div>
         </FormCard>

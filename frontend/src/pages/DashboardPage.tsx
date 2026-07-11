@@ -6,6 +6,7 @@ import { fetchMyScores } from '../api/score';
 import { fetchVictoryConditions } from '../api/victory';
 import { fetchMyWallet } from '../api/wallet';
 import { PageState } from '../components/ui/PageState';
+import { formatEnum, questType, roleLabel, sessionStatus, translateError } from '../i18n/ru';
 import { useAuth } from '../stores/authStore';
 import type {
   GameSessionInfo,
@@ -50,7 +51,11 @@ export function DashboardPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load dashboard');
+          setError(
+            err instanceof Error
+              ? translateError(err.message)
+              : 'Не удалось загрузить главную',
+          );
         }
       } finally {
         if (!cancelled) {
@@ -71,41 +76,43 @@ export function DashboardPage() {
 
   return (
     <section className="dashboard-page">
-      <h1>Dashboard</h1>
-      <p className="page-hint">Your game overview at a glance.</p>
+      <h1>Главная</h1>
+      <p className="page-hint">Обзор вашей игры.</p>
 
-      <PageState loading={loading} error={error} loadingLabel="Loading dashboard…">
+      <PageState loading={loading} error={error} loadingLabel="Загрузка главной…">
         <div className="dashboard-grid">
           <article className="card">
-            <h2>Profile</h2>
+            <h2>Профиль</h2>
             <dl className="data-list">
               <div>
-                <dt>Nickname</dt>
+                <dt>Никнейм</dt>
                 <dd>{user?.nickname ?? '—'}</dd>
               </div>
               <div>
-                <dt>Username</dt>
+                <dt>Логин</dt>
                 <dd>{user?.username ?? '—'}</dd>
               </div>
               <div>
-                <dt>Role</dt>
-                <dd>{user?.role ?? '—'}</dd>
+                <dt>Роль</dt>
+                <dd>{user?.role ? formatEnum(user.role, roleLabel) : '—'}</dd>
               </div>
             </dl>
           </article>
 
           <article className="card">
-            <h2>Session</h2>
+            <h2>Сессия</h2>
             <dl className="data-list">
               <div>
-                <dt>Game</dt>
+                <dt>Игра</dt>
                 <dd>{sessionInfo?.name ?? session?.name ?? '—'}</dd>
               </div>
               <div>
-                <dt>Status</dt>
+                <dt>Статус</dt>
                 <dd>
                   <span className={`badge badge--${(sessionInfo?.status ?? 'STARTING').toLowerCase()}`}>
-                    {sessionInfo?.status ?? '—'}
+                    {sessionInfo?.status
+                      ? formatEnum(sessionInfo.status, sessionStatus)
+                      : '—'}
                   </span>
                 </dd>
               </div>
@@ -113,59 +120,61 @@ export function DashboardPage() {
           </article>
 
           <article className="card">
-            <h2>Wallet</h2>
-            <p className="dashboard-stat">{wallet?.balance ?? 0} coins</p>
+            <h2>Кошелёк</h2>
+            <p className="dashboard-stat">{wallet?.balance ?? 0} М-коинов</p>
             <Link to="/wallet" className="card-link">
-              View wallet →
+              Открыть кошелёк →
             </Link>
           </article>
 
           <article className="card">
-            <h2>Score</h2>
-            <p className="dashboard-stat">{totalScore} pts</p>
+            <h2>Очки</h2>
+            <p className="dashboard-stat">{totalScore} очков</p>
             <Link to="/score" className="card-link">
-              Leaderboard →
+              Рейтинг →
             </Link>
           </article>
 
           <article className="card card--wide">
-            <h2>Active Quests</h2>
+            <h2>Активные квесты</h2>
             {activeQuests.length === 0 ? (
-              <p className="empty-state">No active quests. Start one from the quests page.</p>
+              <p className="empty-state">Нет активных квестов. Начните квест на странице квестов.</p>
             ) : (
               <ul className="simple-list">
                 {activeQuests.map((quest) => (
                   <li key={quest.id}>
                     <strong>{quest.quest.title}</strong>
-                    <span>{quest.quest.type.replaceAll('_', ' ').toLowerCase()}</span>
+                    <span>{formatEnum(quest.quest.type, questType)}</span>
                   </li>
                 ))}
               </ul>
             )}
             <Link to="/quests" className="card-link">
-              All quests →
+              Все квесты →
             </Link>
           </article>
 
           <article className="card card--wide">
-            <h2>Victory</h2>
+            <h2>Победа</h2>
             {victory.length === 0 ? (
-              <p className="empty-state">No victory conditions configured.</p>
+              <p className="empty-state">Условия победы не настроены.</p>
             ) : (
               <ul className="simple-list">
                 {victory.slice(0, 3).map((condition) => (
                   <li key={condition.id}>
                     <strong>{condition.description}</strong>
-                    <span>{condition.achieved ? 'Achieved' : 'In progress'}</span>
+                    <span>{condition.achieved ? 'Выполнено' : 'В процессе'}</span>
                   </li>
                 ))}
               </ul>
             )}
             {achievedVictory.length > 0 && (
-              <p className="status-ok">{achievedVictory.length} condition(s) achieved</p>
+              <p className="status-ok">
+                Выполнено условий: {achievedVictory.length}
+              </p>
             )}
             <Link to="/victory" className="card-link">
-              Victory conditions →
+              Условия победы →
             </Link>
           </article>
         </div>

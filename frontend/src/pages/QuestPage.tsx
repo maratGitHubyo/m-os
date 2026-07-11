@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchMyQuests, fetchQuests, startQuest } from '../api/quests';
 import { PageState } from '../components/ui/PageState';
+import { formatEnum, questStatus, questType, translateError } from '../i18n/ru';
 import type { Quest, QuestProgress } from '../types';
-
-function formatQuestType(type: Quest['type']): string {
-  return type.replaceAll('_', ' ').toLowerCase();
-}
 
 function progressLabel(questProgress: QuestProgress): string | null {
   const current = questProgress.progress.current;
@@ -32,7 +29,9 @@ export function QuestPage() {
       setAvailable(quests);
       setMyQuests(playerQuests);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load quests');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось загрузить квесты',
+      );
     } finally {
       setLoading(false);
     }
@@ -52,7 +51,9 @@ export function QuestPage() {
       await startQuest(questId);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start quest');
+      setError(
+        err instanceof Error ? translateError(err.message) : 'Не удалось начать квест',
+      );
     } finally {
       setStartingId(null);
     }
@@ -63,14 +64,14 @@ export function QuestPage() {
 
   return (
     <section className="quest-page">
-      <h1>Quests</h1>
-      <p className="page-hint">Start quests and track your progress.</p>
+      <h1>Квесты</h1>
+      <p className="page-hint">Начинайте квесты и отслеживайте прогресс.</p>
 
-      <PageState loading={loading} error={error} loadingLabel="Loading quests…">
+      <PageState loading={loading} error={error} loadingLabel="Загрузка квестов…">
         <>
-          <h2 className="section-title">Available quests</h2>
+          <h2 className="section-title">Доступные квесты</h2>
           {available.length === 0 ? (
-            <p className="empty-state">No quests available.</p>
+            <p className="empty-state">Нет доступных квестов.</p>
           ) : (
             <ul className="quest-list">
               {available.map((quest) => {
@@ -81,11 +82,13 @@ export function QuestPage() {
                   <li key={quest.id} className="quest-card">
                     <div className="quest-card__header">
                       <h3>{quest.title}</h3>
-                      <span className="quest-card__type">{formatQuestType(quest.type)}</span>
+                      <span className="quest-card__type">{formatEnum(quest.type, questType)}</span>
                     </div>
                     <p>{quest.description}</p>
                     {playerQuest ? (
-                      <p className="quest-card__status">Status: {playerQuest.status.toLowerCase()}</p>
+                      <p className="quest-card__status">
+                        Статус: {formatEnum(playerQuest.status, questStatus)}
+                      </p>
                     ) : (
                       <button
                         type="button"
@@ -93,7 +96,7 @@ export function QuestPage() {
                         disabled={!canStart || startingId === quest.id}
                         onClick={() => void handleStart(quest.id)}
                       >
-                        {startingId === quest.id ? 'Starting…' : 'Start Quest'}
+                        {startingId === quest.id ? 'Запуск…' : 'Начать квест'}
                       </button>
                     )}
                   </li>
@@ -102,20 +105,20 @@ export function QuestPage() {
             </ul>
           )}
 
-          <h2 className="section-title">Active quests</h2>
+          <h2 className="section-title">Активные квесты</h2>
           {activeQuests.length === 0 ? (
-            <p className="empty-state">No active quests.</p>
+            <p className="empty-state">Нет активных квестов.</p>
           ) : (
             <ul className="quest-list">
               {activeQuests.map((quest) => (
                 <li key={quest.id} className="quest-card quest-card--active">
                   <div className="quest-card__header">
                     <h3>{quest.quest.title}</h3>
-                    <span className="badge badge--active">Active</span>
+                    <span className="badge badge--active">Активно</span>
                   </div>
                   <p>{quest.quest.description}</p>
                   {progressLabel(quest) && (
-                    <p className="quest-card__progress">Progress: {progressLabel(quest)}</p>
+                    <p className="quest-card__progress">Прогресс: {progressLabel(quest)}</p>
                   )}
                 </li>
               ))}
@@ -124,13 +127,13 @@ export function QuestPage() {
 
           {completedQuests.length > 0 && (
             <>
-              <h2 className="section-title">Completed</h2>
+              <h2 className="section-title">Выполненные</h2>
               <ul className="quest-list">
                 {completedQuests.map((quest) => (
                   <li key={quest.id} className="quest-card quest-card--completed">
                     <div className="quest-card__header">
                       <h3>{quest.quest.title}</h3>
-                      <span className="badge badge--completed">Completed</span>
+                      <span className="badge badge--completed">Выполнено</span>
                     </div>
                   </li>
                 ))}

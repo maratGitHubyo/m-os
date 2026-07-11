@@ -15,7 +15,7 @@ export function PlayerSelect({ players, value, onChange, required }: PlayerSelec
       required={required}
       onChange={(event) => onChange(event.target.value)}
     >
-      <option value="">Select player…</option>
+      <option value="">Выберите игрока…</option>
       {players.map((player) => (
         <option key={player.userId} value={player.userId}>
           {player.nickname} ({player.userId.slice(0, 8)}…)

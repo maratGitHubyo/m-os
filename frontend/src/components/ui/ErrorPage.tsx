@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ui } from '../../i18n/ru';
 
 interface ErrorPageProps {
   title: string;
@@ -10,7 +11,7 @@ interface ErrorPageProps {
 export function ErrorPage({
   title,
   message,
-  actionLabel = 'Go to dashboard',
+  actionLabel = ui.goHome,
   actionTo = '/',
 }: ErrorPageProps) {
   return (

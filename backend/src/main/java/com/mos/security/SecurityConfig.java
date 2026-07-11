@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/users/**", "/api/session/**").authenticated()
+                        .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex

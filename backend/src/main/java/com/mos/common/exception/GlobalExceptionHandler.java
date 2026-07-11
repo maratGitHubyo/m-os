@@ -34,6 +34,24 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.FORBIDDEN.value(), "Forbidden", "Access denied"));
     }
 
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientBalance(InsufficientBalanceException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidAmountException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAmount(InvalidAmountException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), "Bad Request", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConcurrentModificationException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentModification(ConcurrentModificationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

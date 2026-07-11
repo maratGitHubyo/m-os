@@ -16,9 +16,4 @@ spring:
 mos:
   demo:
     seed:
-      enabled: true
-
-management:
-  endpoint:
-    health:
-      show-details: always
+      enabled: false

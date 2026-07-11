@@ -14,4 +14,6 @@ public interface SessionParticipantRepository extends JpaRepository<SessionParti
     List<SessionParticipant> findByGameSessionId(UUID gameSessionId);
 
     List<SessionParticipant> findByUserId(UUID userId);
+
+    long countByGameSessionId(UUID gameSessionId);
 }

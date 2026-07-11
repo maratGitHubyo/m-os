@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface ItemTemplateRepository extends JpaRepository<ItemTemplate, UUID> {
 
     List<ItemTemplate> findByGameSessionIdOrderByNameAsc(UUID gameSessionId);
+
+    long countByGameSessionId(UUID gameSessionId);
 }

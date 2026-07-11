@@ -15,6 +15,8 @@ public interface QuestRepository extends JpaRepository<Quest, UUID> {
 
     List<Quest> findByGameSessionIdAndStatusOrderByCreatedAtAsc(UUID gameSessionId, QuestDefinitionStatus status);
 
+    long countByGameSessionIdAndStatus(UUID gameSessionId, QuestDefinitionStatus status);
+
     List<Quest> findByGameSessionIdAndStatusAndTypeOrderByCreatedAtAsc(
             UUID gameSessionId,
             QuestDefinitionStatus status,

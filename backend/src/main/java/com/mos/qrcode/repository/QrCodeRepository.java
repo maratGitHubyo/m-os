@@ -11,4 +11,6 @@ public interface QrCodeRepository extends JpaRepository<QrCode, UUID> {
     Optional<QrCode> findByCodeAndGameSessionId(String code, UUID gameSessionId);
 
     boolean existsByCodeAndGameSessionId(String code, UUID gameSessionId);
+
+    long countByGameSessionId(UUID gameSessionId);
 }

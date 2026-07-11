@@ -24,5 +24,8 @@ public enum AuditAction {
     TRADE_CREATE,
     TRADE_ACCEPT,
     TRADE_DECLINE,
-    TRADE_CANCEL
+    TRADE_CANCEL,
+    SESSION_START,
+    SESSION_PAUSE,
+    SESSION_FINISH
 }

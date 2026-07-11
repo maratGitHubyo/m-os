@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
-                                "/api/inventory/**", "/api/locations/**", "/api/qr/**",
+                                "/api/players/**", "/api/inventory/**", "/api/locations/**", "/api/qr/**",
                                 "/api/secrets/**", "/api/score/**", "/api/leaderboard",
                                 "/api/events/**", "/api/victory-conditions/**",
                                 "/api/numbers/**", "/api/quests/**", "/api/trades/**").authenticated()

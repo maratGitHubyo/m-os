@@ -81,6 +81,27 @@ export function DashboardPage() {
 
       <PageState loading={loading} error={error} loadingLabel="Загрузка главной…">
         <div className="dashboard-grid">
+          <article className="card card--wide dashboard-flow">
+            <h2>Игровой цикл</h2>
+            <p className="page-hint dashboard-flow__steps">
+              Исследовать → Получить награду → Обменяться → Набрать очки → Победить
+            </p>
+            <div className="quick-actions">
+              <Link to="/qr" className="quick-action-card">
+                <strong>QR-коды</strong>
+                <span>Сканировать награды</span>
+              </Link>
+              <Link to="/secrets" className="quick-action-card">
+                <strong>Секреты</strong>
+                <span>Активировать код</span>
+              </Link>
+              <Link to="/trades" className="quick-action-card">
+                <strong>Обмены</strong>
+                <span>Предметы и монеты</span>
+              </Link>
+            </div>
+          </article>
+
           <article className="card">
             <h2>Профиль</h2>
             <dl className="data-list">

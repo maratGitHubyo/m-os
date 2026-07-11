@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchLeaderboard } from '../api/score';
+import { fetchSessionPlayers } from '../api/players';
 import { fetchMyTransactions, fetchMyWallet, fetchTransfers, transferCoins } from '../api/wallet';
 import { PageState } from '../components/ui/PageState';
 import { translateError } from '../i18n/ru';
 import { showToast } from '../stores/toastStore';
 import { useAuth } from '../stores/authStore';
-import type { CoinTransaction, CoinTransfer, LeaderboardEntry, Wallet } from '../types';
+import type { CoinTransaction, CoinTransfer, SessionPlayer, Wallet } from '../types';
 
 function formatTransfer(transfer: CoinTransfer, currentUserId: string): string {
   if (transfer.senderUserId === currentUserId) {
@@ -20,7 +20,7 @@ export function WalletPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [transactions, setTransactions] = useState<CoinTransaction[]>([]);
   const [transfers, setTransfers] = useState<CoinTransfer[]>([]);
-  const [players, setPlayers] = useState<LeaderboardEntry[]>([]);
+  const [players, setPlayers] = useState<SessionPlayer[]>([]);
   const [receiverUserId, setReceiverUserId] = useState('');
   const [amount, setAmount] = useState('10');
   const [loading, setLoading] = useState(true);
@@ -32,17 +32,17 @@ export function WalletPage() {
     setError(null);
 
     try {
-      const [walletData, txPage, transferPage, leaderboard] = await Promise.all([
+      const [walletData, txPage, transferPage, sessionPlayers] = await Promise.all([
         fetchMyWallet(),
         fetchMyTransactions(),
         fetchTransfers(),
-        fetchLeaderboard(),
+        fetchSessionPlayers(),
       ]);
 
       setWallet(walletData);
       setTransactions(txPage.content);
       setTransfers(transferPage.content);
-      setPlayers(leaderboard.filter((entry) => entry.userId !== user?.id));
+      setPlayers(sessionPlayers.filter((player) => player.id !== user?.id));
     } catch (err) {
       setError(
         err instanceof Error ? translateError(err.message) : 'Не удалось загрузить кошелёк',
@@ -111,7 +111,7 @@ export function WalletPage() {
                 >
                   <option value="">Выберите игрока</option>
                   {players.map((player) => (
-                    <option key={player.userId} value={player.userId}>
+                    <option key={player.id} value={player.id}>
                       {player.nickname}
                     </option>
                   ))}

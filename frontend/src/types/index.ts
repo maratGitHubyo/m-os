@@ -180,6 +180,68 @@ export interface LeaderboardEntry {
   points: number;
 }
 
+export interface SessionPlayer {
+  id: string;
+  nickname: string;
+}
+
+export type QrRewardType = 'COIN' | 'ITEM' | 'NONE';
+
+export interface QrScanResponse {
+  qrCodeId: string;
+  code: string;
+  rewardType: QrRewardType;
+  coinAmount: number | null;
+  grantedItem: Item | null;
+  locationDiscovered: boolean;
+}
+
+export type SecretRewardType = 'COIN' | 'ITEM' | 'NUMBER' | 'QUEST' | 'NONE';
+
+export interface SecretRedeemResponse {
+  secretId: string;
+  code: string;
+  title: string;
+  rewardType: SecretRewardType;
+  coinAmount: number | null;
+  grantedItem: Item | null;
+}
+
+export type TradeStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED';
+
+export interface TradeItem {
+  id: string;
+  playerItemId: string;
+  ownerId: string;
+  template: ItemTemplate;
+}
+
+export interface TradeCoin {
+  id: string;
+  userId: string;
+  amount: number;
+}
+
+export interface Trade {
+  id: string;
+  gameSessionId: string;
+  initiatorId: string;
+  receiverId: string;
+  status: TradeStatus;
+  items: TradeItem[];
+  coins: TradeCoin[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTradeRequest {
+  receiverId: string;
+  initiatorItemIds?: string[];
+  receiverItemIds?: string[];
+  initiatorCoins?: number;
+  receiverCoins?: number;
+}
+
 export type VictoryConditionType =
   | 'COLLECT_ALL_NUMBERS'
   | 'COLLECT_UNIQUE_ITEMS'

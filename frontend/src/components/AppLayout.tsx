@@ -5,8 +5,11 @@ import { logout, useAuth } from '../stores/authStore';
 const navItems = [
   { to: '/', label: 'Главная', end: true },
   { to: '/map', label: 'Карта' },
+  { to: '/qr', label: 'QR' },
+  { to: '/secrets', label: 'Секреты' },
   { to: '/inventory', label: 'Инвентарь' },
   { to: '/wallet', label: 'Кошелёк' },
+  { to: '/trades', label: 'Обмены' },
   { to: '/quests', label: 'Квесты' },
   { to: '/score', label: 'Рейтинг' },
   { to: '/victory', label: 'Победа' },

@@ -48,6 +48,10 @@ a {
   font-size: 0.85rem;
   font-weight: 500;
   align-items: center;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.15rem;
 }
 
 .app-nav__link {
@@ -350,6 +354,130 @@ a {
   padding: 0.55rem 0.75rem;
 }
 
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.quick-action-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #2f3336;
+  border-radius: 10px;
+  background: #16181c;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.quick-action-card:hover {
+  border-color: #1d9bf0;
+}
+
+.quick-action-card span {
+  color: #71767b;
+  font-size: 0.85rem;
+}
+
+.dashboard-flow__steps {
+  margin: 0.5rem 0 0;
+}
+
+.player-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.player-form .form-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.player-form select,
+.player-form input {
+  border: 1px solid #2f3336;
+  border-radius: 8px;
+  background: #0f1419;
+  color: #e7e9ea;
+  padding: 0.55rem 0.75rem;
+  width: 100%;
+}
+
+.player-action-card {
+  margin-bottom: 1.5rem;
+}
+
+.result-panel {
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #2f3336;
+}
+
+.result-panel--success {
+  background: #102318;
+  border-color: #00ba7c;
+}
+
+.result-panel--error {
+  background: #2a1215;
+  border-color: #f4212e;
+}
+
+.result-panel__code,
+.result-panel__meta {
+  color: #71767b;
+  font-size: 0.9rem;
+}
+
+.trade-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.trade-card {
+  border: 1px solid #2f3336;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  background: #16181c;
+}
+
+.trade-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.trade-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.trade-items-picker {
+  border: 1px solid #2f3336;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+}
+
+.checkbox-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
 .transaction-list {
   list-style: none;
   margin: 0;
@@ -475,8 +603,38 @@ a {
     align-items: flex-start;
   }
 
+  .app-nav {
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .app-nav__link,
+  .app-nav__logout {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   .app-main {
     padding: 1.25rem 1rem;
+  }
+
+  .player-form,
+  .wallet-transfer__form {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-card__actions {
+    flex-direction: column;
+  }
+
+  .trade-card__actions .btn {
+    width: 100%;
   }
 
   .leaderboard-table th,

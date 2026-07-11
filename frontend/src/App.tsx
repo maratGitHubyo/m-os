@@ -27,6 +27,9 @@ import { MapPage } from './pages/MapPage';
 import { QuestPage } from './pages/QuestPage';
 import { VictoryPage } from './pages/VictoryPage';
 import { WalletPage } from './pages/WalletPage';
+import { QrScanPage } from './pages/QrScanPage';
+import { SecretsPage as PlayerSecretsPage } from './pages/SecretsPage';
+import { TradesPage } from './pages/TradesPage';
 import { ForbiddenPage } from './pages/ForbiddenPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { isAuthenticated } from './stores/authStore';
@@ -49,6 +52,9 @@ export function App() {
             <Route path="/map" element={<MapPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/qr" element={<QrScanPage />} />
+            <Route path="/secrets" element={<PlayerSecretsPage />} />
+            <Route path="/trades" element={<TradesPage />} />
             <Route path="/quests" element={<QuestPage />} />
             <Route path="/score" element={<LeaderboardPage />} />
             <Route path="/victory" element={<VictoryPage />} />

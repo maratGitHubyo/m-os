@@ -13,6 +13,26 @@ const ERROR_MESSAGES: Record<string, string> = {
   'Insufficient M-coin balance': 'Недостаточно М-коинов',
   'Cannot transfer coins to yourself': 'Нельзя переводить монеты самому себе',
   'User is not a participant of this game session': 'Игрок не участник текущей сессии',
+  'QR code not found': 'QR-код не найден',
+  'You have already scanned this QR code': 'Вы уже сканировали этот QR-код',
+  'QR code scan limit reached': 'Лимит сканирований QR-кода исчерпан',
+  'QR code is inactive': 'QR-код неактивен',
+  'Secret code not found': 'Секретный код не найден',
+  'This secret is not assigned to you': 'Этот секрет не назначен вам',
+  'Secret code has already been used': 'Секретный код уже использован',
+  'Reward type not yet implemented: NUMBER': 'Награда «число» пока не реализована',
+  'Reward type not yet implemented: QUEST': 'Награда «квест» пока не реализована',
+  'Trade not found': 'Обмен не найден',
+  'You are not a participant of this trade': 'Вы не участник этого обмена',
+  'Trade is not in a valid state for this operation': 'Обмен в недопустимом статусе для этой операции',
+  'Trade item is not owned by the expected player': 'Предмет обмена принадлежит другому игроку',
+  'Insufficient coins for this trade': 'Недостаточно монет для обмена',
+  'Cannot create a trade with yourself': 'Нельзя создать обмен с самим собой',
+  'Trade must include at least one item or coin offer': 'Обмен должен включать монеты или предметы',
+  'Item not found': 'Предмет не найден',
+  'Item belongs to a different game session': 'Предмет из другой игровой сессии',
+  'You do not own this item': 'Этот предмет вам не принадлежит',
+  'Leaderboard is disabled for this game session': 'Рейтинг отключён для этой сессии',
 };
 
 export function translateError(message: string): string {
@@ -81,6 +101,13 @@ export const itemRarity: Record<string, string> = {
   RARE: 'Редкий',
   EPIC: 'Эпический',
   LEGENDARY: 'Легендарный',
+};
+
+export const tradeStatus: Record<string, string> = {
+  PENDING: 'Ожидает',
+  ACCEPTED: 'Принят',
+  DECLINED: 'Отклонён',
+  CANCELLED: 'Отменён',
 };
 
 export const roleLabel: Record<string, string> = {

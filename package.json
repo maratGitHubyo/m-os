@@ -1,0 +1,10 @@
+{
+  "name": "mos",
+  "private": true,
+  "description": "M-OS — Marat Operating System",
+  "scripts": {
+    "start": "docker compose up --build",
+    "stop": "docker compose down",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/dev.ps1"
+  }
+}

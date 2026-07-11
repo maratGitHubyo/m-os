@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: mos-postgres
+    container_name: mos-postgres-dev
     ports:
       - "5432:5432"
     environment:
@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: mos
       POSTGRES_PASSWORD: mos_dev
     volumes:
-      - mos_pgdata:/var/lib/postgresql/data
+      - mos_pgdata_dev:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mos -d mos"]
       interval: 5s
@@ -17,4 +17,4 @@ services:
       retries: 5
 
 volumes:
-  mos_pgdata:
+  mos_pgdata_dev:

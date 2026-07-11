@@ -113,12 +113,22 @@ Demo users (with demo seed):
 
 ## Docker
 
-### Production (full stack)
+### Production (full stack) — одна команда
 
 ```powershell
 copy .env.example .env
-docker compose up --build
+npm start
 ```
+
+Или без npm:
+
+```powershell
+.\start.ps1
+```
+
+Двойной клик по `start.bat` (Windows).
+
+Остановка: `npm run stop` или `docker compose down`
 
 | Service | Role |
 |---------|------|
@@ -141,7 +151,17 @@ docker compose -f docker-compose.dev.yml up -d
 
 ## Development
 
-### Backend
+### Всё сразу (PostgreSQL + Backend + Frontend)
+
+```powershell
+npm run dev
+```
+
+Откроются два окна терминала (backend и frontend). Frontend: http://localhost:5173
+
+### По отдельности
+
+#### Backend
 
 ```powershell
 cd backend
@@ -150,7 +170,7 @@ mvn spring-boot:run
 
 Health: http://localhost:8080/actuator/health
 
-### Frontend
+#### Frontend
 
 ```powershell
 cd frontend
@@ -201,13 +221,16 @@ M-OS/
 ├── database/                # Scripts & seeds
 ├── docs/                    # Extended documentation
 ├── docker-compose.yml       # Production stack
-└── docker-compose.dev.yml   # Dev PostgreSQL only
+├── docker-compose.dev.yml   # Dev PostgreSQL only
+├── start.ps1 / start.bat    # Запуск production одной командой
+└── package.json             # npm start / npm run dev
 ```
 
 ---
 
 ## Documentation
 
+- **[User guide (RU) — участники и админ](docs/user-guide.md)**
 - [Architecture v4](docs/architecture.md)
 - [API reference](docs/api.md)
 - [Deployment](docs/deployment.md)

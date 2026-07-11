@@ -224,3 +224,109 @@ a {
   color: #71767b;
   font-size: 0.875rem;
 }
+
+.victory-page h1 {
+  margin-top: 0;
+}
+
+.victory-page__hint,
+.victory-page__empty,
+.victory-page__someone-won,
+.victory-page__pending {
+  color: #71767b;
+}
+
+.victory-page__auth {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.victory-page__token-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #2f3336;
+  border-radius: 8px;
+  background: #16181c;
+  color: #e7e9ea;
+}
+
+.victory-page__summary {
+  margin-bottom: 1rem;
+}
+
+.victory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.victory-card {
+  border: 1px solid #2f3336;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  background: #16181c;
+}
+
+.victory-card--achieved {
+  border-color: #00ba7c;
+}
+
+.victory-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.victory-card__type {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #71767b;
+}
+
+.victory-card__badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #2f3336;
+  color: #e7e9ea;
+}
+
+.victory-card__badge--done {
+  background: #0d3b2e;
+  color: #00ba7c;
+}
+
+.victory-card__description {
+  margin: 0 0 0.75rem;
+}
+
+.victory-card__progress-label {
+  font-size: 0.875rem;
+  color: #71767b;
+  margin-bottom: 0.35rem;
+}
+
+.victory-card__progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #2f3336;
+  overflow: hidden;
+}
+
+.victory-card__progress-fill {
+  height: 100%;
+  background: #1d9bf0;
+  border-radius: 999px;
+}
+
+.victory-card__meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #71767b;
+}

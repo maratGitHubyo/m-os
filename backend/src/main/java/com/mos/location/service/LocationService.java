@@ -12,6 +12,7 @@ import com.mos.location.entity.LocationPoint;
 import com.mos.location.entity.PlayerLocationDiscovery;
 import com.mos.location.repository.LocationPointRepository;
 import com.mos.location.repository.PlayerLocationDiscoveryRepository;
+import com.mos.victory.service.VictoryConditionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class LocationService {
     private final LocationPointRepository locationPointRepository;
     private final PlayerLocationDiscoveryRepository playerLocationDiscoveryRepository;
     private final AuditService auditService;
+    private final VictoryConditionService victoryConditionService;
 
     @Transactional
     public AdminLocationPointResponse createLocation(UUID gameSessionId, CreateLocationRequest request) {
@@ -120,6 +122,8 @@ public class LocationService {
                         "hidden", location.getHidden()
                 )
         );
+
+        victoryConditionService.checkAfterGameDataChange(userId, gameSessionId);
 
         return LocationPointResponse.forPlayer(location, true);
     }

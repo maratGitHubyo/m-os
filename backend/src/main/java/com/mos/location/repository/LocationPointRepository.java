@@ -12,4 +12,6 @@ public interface LocationPointRepository extends JpaRepository<LocationPoint, UU
     List<LocationPoint> findByGameSessionIdOrderByZoneAscNameAsc(UUID gameSessionId);
 
     Optional<LocationPoint> findByIdAndGameSessionId(UUID id, UUID gameSessionId);
+
+    long countByGameSessionId(UUID gameSessionId);
 }

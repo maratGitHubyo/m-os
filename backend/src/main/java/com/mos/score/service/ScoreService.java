@@ -15,6 +15,7 @@ import com.mos.score.repository.PlayerScoreRepository;
 import com.mos.score.repository.ScoreTransactionRepository;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.SessionParticipantRepository;
+import com.mos.victory.service.VictoryConditionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class ScoreService {
     private final SessionParticipantRepository sessionParticipantRepository;
     private final GameConfigRepository gameConfigRepository;
     private final AuditService auditService;
+    private final VictoryConditionService victoryConditionService;
 
     @Transactional
     public ScoreTransactionResponse addPoints(
@@ -183,6 +185,8 @@ public class ScoreService {
                         "transactionId", transaction.getId().toString()
                 )
         );
+
+        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
 
         return ScoreTransactionResponse.from(transaction);
     }

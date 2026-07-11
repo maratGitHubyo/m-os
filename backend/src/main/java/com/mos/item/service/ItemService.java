@@ -20,6 +20,7 @@ import com.mos.item.repository.ItemOwnershipHistoryRepository;
 import com.mos.item.repository.ItemTemplateRepository;
 import com.mos.item.repository.PlayerItemRepository;
 import com.mos.session.repository.SessionParticipantRepository;
+import com.mos.victory.service.VictoryConditionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class ItemService {
     private final ItemOwnershipHistoryRepository itemOwnershipHistoryRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
     private final AuditService auditService;
+    private final VictoryConditionService victoryConditionService;
 
     @Transactional
     public ItemTemplateResponse createTemplate(UUID gameSessionId, CreateItemTemplateRequest request) {
@@ -93,6 +95,8 @@ public class ItemService {
                 )
         );
 
+        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
+
         return PlayerItemResponse.from(playerItem);
     }
 
@@ -115,6 +119,8 @@ public class ItemService {
                 .build());
 
         recordOwnershipHistory(playerItem, null, targetUserId, gameSessionId, OwnershipTransferReason.GRANT);
+
+        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
 
         return PlayerItemResponse.from(playerItem);
     }

@@ -14,4 +14,6 @@ public interface PlayerLocationDiscoveryRepository extends JpaRepository<PlayerL
     boolean existsByUserIdAndLocationPointId(UUID userId, UUID locationPointId);
 
     List<PlayerLocationDiscovery> findByUserIdAndGameSessionId(UUID userId, UUID gameSessionId);
+
+    long countByUserIdAndGameSessionId(UUID userId, UUID gameSessionId);
 }

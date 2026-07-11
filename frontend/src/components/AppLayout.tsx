@@ -7,6 +7,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Link to="/">M-OS</Link>
         <nav className="app-nav">
           <Link to="/map">Map</Link>
+          <Link to="/victory">Victory</Link>
         </nav>
       </header>
       <main className="app-main">{children}</main>

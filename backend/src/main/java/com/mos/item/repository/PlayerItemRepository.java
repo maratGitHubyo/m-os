@@ -33,4 +33,15 @@ public interface PlayerItemRepository extends JpaRepository<PlayerItem, UUID> {
             @Param("id") UUID id,
             @Param("gameSessionId") UUID gameSessionId
     );
+
+    @Query("""
+            SELECT COUNT(DISTINCT pi.itemTemplate.id) FROM PlayerItem pi
+            WHERE pi.ownerId = :ownerId
+              AND pi.gameSessionId = :gameSessionId
+              AND pi.itemTemplate.isUnique = true
+            """)
+    long countDistinctUniqueItemTemplatesByOwner(
+            @Param("ownerId") UUID ownerId,
+            @Param("gameSessionId") UUID gameSessionId
+    );
 }

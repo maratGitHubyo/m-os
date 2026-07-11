@@ -1,5 +1,6 @@
 package com.mos.victory.checker;
 
+import com.mos.numbers.repository.PlayerNumberRepository;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.victory.dto.VictoryProgress;
 import com.mos.victory.enums.VictoryConditionType;
@@ -9,14 +10,12 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Placeholder for Stage 11 (Numbers). Never reports satisfied until numbers module exists.
- */
 @Component
 @RequiredArgsConstructor
 public class CollectAllNumbersChecker implements VictoryTypeChecker {
 
     private final GameConfigRepository gameConfigRepository;
+    private final PlayerNumberRepository playerNumberRepository;
 
     @Override
     public VictoryConditionType supportedType() {
@@ -25,10 +24,12 @@ public class CollectAllNumbersChecker implements VictoryTypeChecker {
 
     @Override
     public VictoryProgress evaluate(UUID userId, UUID gameSessionId, Map<String, Object> targetValue) {
-        int numbersTotal = gameConfigRepository.findByGameSessionId(gameSessionId)
-                .map(config -> config.getNumbersTotal() != null ? config.getNumbersTotal() : 0)
-                .orElse(0);
+        long numbersTotal = gameConfigRepository.findByGameSessionId(gameSessionId)
+                .map(config -> config.getNumbersTotal() != null ? config.getNumbersTotal().longValue() : 0L)
+                .orElse(0L);
 
-        return VictoryProgress.stub(0, numbersTotal, "Numbers collected (not yet available)");
+        long current = playerNumberRepository.countByUserIdAndGameSessionId(userId, gameSessionId);
+
+        return VictoryProgress.of(current, numbersTotal, "Numbers collected");
     }
 }

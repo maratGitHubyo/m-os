@@ -237,7 +237,11 @@ class VictoryIntegrationTest {
     }
 
     @Test
-    void collectAllNumbersNeverAchievedBeforeStage11() throws Exception {
+    void collectAllNumbersConditionAchieved() throws Exception {
+        var config = gameConfigRepository.findByGameSessionId(GAME_SESSION_ID).orElseThrow();
+        config.setNumbersTotal(2);
+        gameConfigRepository.save(config);
+
         mockMvc.perform(post("/api/admin/victory-conditions")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -251,13 +255,49 @@ class VictoryIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
+        var firstNumber = mockMvc.perform(post("/api/admin/numbers")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"numberValue\":7}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID firstNumberId = UUID.fromString(
+                objectMapper.readTree(firstNumber.getResponse().getContentAsString()).get("id").asText()
+        );
+
+        var secondNumber = mockMvc.perform(post("/api/admin/numbers")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"numberValue\":13}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID secondNumberId = UUID.fromString(
+                objectMapper.readTree(secondNumber.getResponse().getContentAsString()).get("id").asText()
+        );
+
+        mockMvc.perform(post("/api/admin/numbers/" + firstNumberId + "/grant/" + ADMIN_USER_ID)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
         mockMvc.perform(get("/api/victory-conditions")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].progressCurrent").value(0))
+                .andExpect(jsonPath("$[0].progressCurrent").value(1))
+                .andExpect(jsonPath("$[0].progressTarget").value(2))
                 .andExpect(jsonPath("$[0].achieved").value(false));
 
-        assertThat(victoryConditionRepository.findAll().getFirst().getAchievedAt()).isNull();
+        mockMvc.perform(post("/api/admin/numbers/" + secondNumberId + "/grant/" + ADMIN_USER_ID)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/victory-conditions")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].achieved").value(true))
+                .andExpect(jsonPath("$[0].achievedByMe").value(true));
+
+        assertThat(victoryConditionRepository.findAll().getFirst().getAchievedAt()).isNotNull();
+        assertThat(victoryConditionRepository.findAll().getFirst().getAchievedByUserId()).isEqualTo(ADMIN_USER_ID);
     }
 
     @Test

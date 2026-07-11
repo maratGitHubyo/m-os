@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
                                 "/api/inventory/**", "/api/locations/**", "/api/qr/**",
                                 "/api/secrets/**", "/api/score/**", "/api/leaderboard",
-                                "/api/events/**", "/api/victory-conditions/**").authenticated()
+                                "/api/events/**", "/api/victory-conditions/**",
+                                "/api/numbers/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex

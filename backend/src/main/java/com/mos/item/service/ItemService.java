@@ -21,8 +21,6 @@ import com.mos.item.repository.ItemTemplateRepository;
 import com.mos.item.repository.PlayerItemRepository;
 import com.mos.quest.service.QuestService;
 import com.mos.session.repository.SessionParticipantRepository;
-import com.mos.victory.service.VictoryConditionService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +37,6 @@ public class ItemService {
     private final ItemOwnershipHistoryRepository itemOwnershipHistoryRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
     private final AuditService auditService;
-    private final VictoryConditionService victoryConditionService;
     private final QuestService questService;
 
     public ItemService(
@@ -48,7 +45,6 @@ public class ItemService {
             ItemOwnershipHistoryRepository itemOwnershipHistoryRepository,
             SessionParticipantRepository sessionParticipantRepository,
             AuditService auditService,
-            VictoryConditionService victoryConditionService,
             @Lazy QuestService questService
     ) {
         this.itemTemplateRepository = itemTemplateRepository;
@@ -56,7 +52,6 @@ public class ItemService {
         this.itemOwnershipHistoryRepository = itemOwnershipHistoryRepository;
         this.sessionParticipantRepository = sessionParticipantRepository;
         this.auditService = auditService;
-        this.victoryConditionService = victoryConditionService;
         this.questService = questService;
     }
 
@@ -115,7 +110,6 @@ public class ItemService {
                 )
         );
 
-        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
         questService.updateProgressAfterItemGrant(targetUserId, gameSessionId);
 
         return PlayerItemResponse.from(playerItem);
@@ -141,7 +135,6 @@ public class ItemService {
 
         recordOwnershipHistory(playerItem, null, targetUserId, gameSessionId, OwnershipTransferReason.GRANT);
 
-        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
         questService.updateProgressAfterItemGrant(targetUserId, gameSessionId);
 
         return PlayerItemResponse.from(playerItem);

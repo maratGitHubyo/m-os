@@ -85,7 +85,7 @@ export function AdminDashboardPage() {
               </article>
             </div>
 
-            <h2 className="section-title">Топ-10 рейтинга</h2>
+            <h2 className="section-title">Топ-10 по M-Coins</h2>
             {top10.length === 0 ? (
               <p className="empty-state">Рейтинг пуст.</p>
             ) : (
@@ -95,7 +95,7 @@ export function AdminDashboardPage() {
                 columns={[
                   { key: 'rank', header: 'Место', render: (row) => `#${row.rank}` },
                   { key: 'nickname', header: 'Игрок', render: (row) => row.nickname },
-                  { key: 'points', header: 'Очки', render: (row) => row.points },
+                  { key: 'balance', header: 'M-Coins', render: (row) => row.balance },
                 ]}
               />
             )}

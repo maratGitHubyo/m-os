@@ -17,8 +17,6 @@ import com.mos.numbers.repository.PlayerNumberRepository;
 import com.mos.quest.service.QuestService;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.SessionParticipantRepository;
-import com.mos.victory.service.VictoryConditionService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +33,6 @@ public class NumberService {
     private final GameConfigRepository gameConfigRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
     private final AuditService auditService;
-    private final VictoryConditionService victoryConditionService;
     private final QuestService questService;
 
     public NumberService(
@@ -44,7 +41,6 @@ public class NumberService {
             GameConfigRepository gameConfigRepository,
             SessionParticipantRepository sessionParticipantRepository,
             AuditService auditService,
-            VictoryConditionService victoryConditionService,
             @Lazy QuestService questService
     ) {
         this.collectibleNumberRepository = collectibleNumberRepository;
@@ -52,7 +48,6 @@ public class NumberService {
         this.gameConfigRepository = gameConfigRepository;
         this.sessionParticipantRepository = sessionParticipantRepository;
         this.auditService = auditService;
-        this.victoryConditionService = victoryConditionService;
         this.questService = questService;
     }
 
@@ -128,7 +123,6 @@ public class NumberService {
                 )
         );
 
-        victoryConditionService.checkAfterGameDataChange(targetUserId, gameSessionId);
         questService.updateProgressAfterNumberGrant(targetUserId, gameSessionId);
 
         return PlayerNumberResponse.from(playerNumber);

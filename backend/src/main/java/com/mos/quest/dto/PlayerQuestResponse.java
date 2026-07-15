@@ -15,12 +15,17 @@ public record PlayerQuestResponse(
         UUID gameSessionId,
         PlayerQuestStatus status,
         Map<String, Object> progress,
+        String completionNote,
         Instant completedAt,
         Instant createdAt,
         QuestResponse quest
 ) {
 
     public static PlayerQuestResponse from(PlayerQuest playerQuest) {
+        return from(playerQuest, 0L);
+    }
+
+    public static PlayerQuestResponse from(PlayerQuest playerQuest, long completedCount) {
         Quest quest = playerQuest.getQuest();
         return new PlayerQuestResponse(
                 playerQuest.getId(),
@@ -29,9 +34,10 @@ public record PlayerQuestResponse(
                 playerQuest.getGameSessionId(),
                 playerQuest.getStatus(),
                 playerQuest.getProgress(),
+                playerQuest.getCompletionNote(),
                 playerQuest.getCompletedAt(),
                 playerQuest.getCreatedAt(),
-                QuestResponse.from(quest)
+                QuestResponse.from(quest, completedCount, false)
         );
     }
 }

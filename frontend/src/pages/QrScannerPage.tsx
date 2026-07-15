@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { extractPublicIdFromQrText, scanQrByPublicId, scanQrCode } from '../api/qr';
 import { translateError } from '../i18n/ru';
 import type { QrScanResponse, QrScanResultResponse } from '../types';
-
-const SCANNER_ELEMENT_ID = 'qr-scanner-viewport';
 
 function formatScanMessage(result: QrScanResultResponse): string {
   if (!result.success) {
@@ -17,17 +15,23 @@ function formatScanMessage(result: QrScanResultResponse): string {
     return translateError(result.message);
   }
 
-  return '🎉 Найден артефакт!';
+  return 'Найден артефакт!';
 }
 
 export function QrScannerPage() {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const { publicId: pathPublicId } = useParams<{ publicId?: string }>();
+  const [searchParams] = useSearchParams();
   const processingRef = useRef(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
+  const deepLinkHandledRef = useRef<string | null>(null);
+  const [scanning, setScanning] = useState(false);
   const [lastResult, setLastResult] = useState<QrScanResultResponse | null>(null);
   const [legacyResult, setLegacyResult] = useState<QrScanResponse | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
+  const [showManual, setShowManual] = useState(false);
+
+  const hasOutcome = Boolean(lastResult || legacyResult || lastError);
+  const success = Boolean(lastResult?.success || legacyResult);
 
   const processScan = useCallback(async (text: string, allowLegacy: boolean) => {
     if (processingRef.current) {
@@ -45,8 +49,10 @@ export function QrScannerPage() {
     }
 
     processingRef.current = true;
+    setScanning(true);
     setLastError(null);
     setLegacyResult(null);
+    setLastResult(null);
 
     try {
       if (publicId) {
@@ -59,57 +65,28 @@ export function QrScannerPage() {
       }
 
       const legacyResponse = await scanQrCode(trimmed);
-      setLastResult(null);
       setLegacyResult(legacyResponse);
     } catch (err) {
       const message =
         err instanceof Error ? translateError(err.message) : 'Не удалось отсканировать QR';
       setLastError(message);
-      setLastResult(null);
-      setLegacyResult(null);
     } finally {
+      setScanning(false);
       window.setTimeout(() => {
         processingRef.current = false;
-      }, 1500);
+      }, 800);
     }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    const scanner = new Html5Qrcode(SCANNER_ELEMENT_ID);
-    scannerRef.current = scanner;
-
-    const startScanner = async () => {
-      try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          (decodedText) => {
-            void processScan(decodedText, false);
-          },
-          () => {
-            // ignore frame-level decode noise
-          },
-        );
-        if (!cancelled) {
-          setCameraError(null);
-        }
-      } catch {
-        if (!cancelled) {
-          setCameraError('Не удалось открыть камеру. Разрешите доступ или введите код вручную.');
-        }
-      }
-    };
-
-    void startScanner();
-
-    return () => {
-      cancelled = true;
-      void scanner.stop().catch(() => undefined);
-      scanner.clear();
-      scannerRef.current = null;
-    };
-  }, [processScan]);
+    const fromQuery = searchParams.get('pid') ?? searchParams.get('code');
+    const deepLinkId = pathPublicId ?? fromQuery;
+    if (!deepLinkId || deepLinkHandledRef.current === deepLinkId) {
+      return;
+    }
+    deepLinkHandledRef.current = deepLinkId;
+    void processScan(deepLinkId, true);
+  }, [pathPublicId, searchParams, processScan]);
 
   const handleManualSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -119,74 +96,108 @@ export function QrScannerPage() {
   return (
     <section className="qr-page qr-scanner-page">
       <h1>Сканировать QR</h1>
-      <p className="page-hint">Наведите камеру на QR-код на территории мероприятия.</p>
 
-      <article className="card qr-scanner-card">
-        <div id={SCANNER_ELEMENT_ID} className="qr-scanner-viewport" />
-        <p className="qr-scanner-hint">Наведи QR</p>
-      </article>
-
-      {cameraError && (
-        <div className="result-panel result-panel--error" role="alert">
-          <strong>Камера</strong>
-          <p>{cameraError}</p>
+      {scanning && (
+        <div className="qr-hero qr-hero--processing" role="status">
+          <p className="qr-hero__eyebrow">Обработка</p>
+          <p className="qr-hero__title">Получаем награду…</p>
         </div>
       )}
 
-      <article className="card player-action-card">
-        <form className="player-form" onSubmit={(event) => void handleManualSubmit(event)}>
-          <label className="form-field">
-            <span>Или введите код / ссылку вручную</span>
-            <input
-              type="text"
-              value={manualCode}
-              onChange={(event) => setManualCode(event.target.value)}
-              placeholder="https://mos.local/qr/… или текстовый код"
-              autoComplete="off"
-            />
-          </label>
-          <button type="submit" className="btn btn--secondary">
-            Отправить
-          </button>
-        </form>
-      </article>
-
-      {(lastResult || legacyResult || lastError) && (
+      {!scanning && hasOutcome && (
         <div
-          className={`result-panel ${
-            lastResult?.success || legacyResult ? 'result-panel--success' : 'result-panel--error'
-          }`}
+          className={`qr-hero ${success ? 'qr-hero--success' : 'qr-hero--error'}`}
+          role="status"
         >
-          <strong>Последний результат</strong>
           {lastResult?.success ? (
             <>
-              <p>{formatScanMessage(lastResult)}</p>
-              {lastResult.title && <p className="result-panel__code">{lastResult.title}</p>}
-              {lastResult.reward?.item && (
-                <p className="result-panel__meta">🎁 {lastResult.reward.item}</p>
-              )}
-              {lastResult.reward?.coins != null && (
-                <p className="result-panel__meta">+{lastResult.reward.coins} M-Coins</p>
-              )}
+              <p className="qr-hero__eyebrow">Успех</p>
+              <p className="qr-hero__title">{formatScanMessage(lastResult)}</p>
+              {lastResult.title && <p className="qr-hero__name">{lastResult.title}</p>}
+              <ul className="qr-hero__rewards">
+                {lastResult.reward?.item && <li>{lastResult.reward.item}</li>}
+                {lastResult.reward?.coins != null && (
+                  <li>+{lastResult.reward.coins} M-Coins</li>
+                )}
+              </ul>
             </>
           ) : legacyResult ? (
             <>
-              <p>🎉 Найден артефакт!</p>
-              {legacyResult.grantedItem && (
-                <p className="result-panel__meta">🎁 {legacyResult.grantedItem.template.name}</p>
-              )}
-              {legacyResult.coinAmount != null && (
-                <p className="result-panel__meta">+{legacyResult.coinAmount} M-Coins</p>
-              )}
-              {legacyResult.locationDiscovered && (
-                <p className="result-panel__meta">Открыта новая локация на карте</p>
-              )}
+              <p className="qr-hero__eyebrow">Успех</p>
+              <p className="qr-hero__title">Найден артефакт!</p>
+              <ul className="qr-hero__rewards">
+                {legacyResult.grantedItem && (
+                  <li>{legacyResult.grantedItem.template.name}</li>
+                )}
+                {legacyResult.coinAmount != null && (
+                  <li>+{legacyResult.coinAmount} M-Coins</li>
+                )}
+                {legacyResult.locationDiscovered && <li>Открыта локация на карте</li>}
+              </ul>
             </>
           ) : (
-            <p>{lastError ?? 'QR недоступен'}</p>
+            <>
+              <p className="qr-hero__eyebrow">Не вышло</p>
+              <p className="qr-hero__title">{lastError ?? 'QR недоступен'}</p>
+            </>
           )}
+          <Link to="/inventory" className="btn btn--secondary qr-hero__cta">
+            Смотреть инвентарь
+          </Link>
         </div>
       )}
+
+      {!scanning && !hasOutcome && (
+        <article className="qr-howto">
+          <p className="qr-howto__lead">
+            Не сканируйте QR внутри приложения — откройте обычную камеру телефона.
+          </p>
+          <ol className="qr-howto__steps">
+            <li>
+              <strong>Откройте камеру</strong>
+              <span>стандартное приложение камеры на телефоне</span>
+            </li>
+            <li>
+              <strong>Наведите на QR</strong>
+              <span>до появления ссылки на экранчике</span>
+            </li>
+            <li>
+              <strong>Перейдите по ссылке</strong>
+              <span>награда придёт автоматически после входа</span>
+            </li>
+          </ol>
+          <p className="qr-howto__note">
+            Если вы ещё не вошли в M-OS — сначала войдите, затем отсканируйте QR снова.
+          </p>
+        </article>
+      )}
+
+      <div className="qr-manual">
+        <button
+          type="button"
+          className="qr-manual__toggle"
+          onClick={() => setShowManual((open) => !open)}
+        >
+          {showManual ? 'Скрыть ручной ввод' : 'Нет камеры? Ввести код вручную'}
+        </button>
+        {showManual && (
+          <form className="player-form" onSubmit={(event) => void handleManualSubmit(event)}>
+            <label className="form-field">
+              <span>Код или ссылка из QR</span>
+              <input
+                type="text"
+                value={manualCode}
+                onChange={(event) => setManualCode(event.target.value)}
+                placeholder="QR-COIN или http://…/qr/…"
+                autoComplete="off"
+              />
+            </label>
+            <button type="submit" className="btn btn--secondary" disabled={scanning}>
+              Получить награду
+            </button>
+          </form>
+        )}
+      </div>
     </section>
   );
 }

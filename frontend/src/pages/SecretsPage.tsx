@@ -21,11 +21,11 @@ function formatSecretReward(result: SecretRedeemResponse): string[] {
   }
 
   if (result.rewardType === 'QUEST') {
-    lines.push('Активировано секретное задание');
+    lines.push('Активировано задание по промокоду');
   }
 
   if (lines.length === 0) {
-    lines.push('Секрет активирован');
+    lines.push('Промокод активирован');
   }
 
   return lines;
@@ -42,7 +42,7 @@ export function SecretsPage() {
 
     const trimmed = code.trim();
     if (!trimmed) {
-      showToast('Введите секретный код', 'error');
+      showToast('Введите промокод', 'error');
       return;
     }
 
@@ -53,10 +53,10 @@ export function SecretsPage() {
     try {
       const response = await redeemSecret(trimmed);
       setResult(response);
-      showToast('Секрет активирован');
+      showToast('Промокод активирован');
     } catch (err) {
       const message =
-        err instanceof Error ? translateError(err.message) : 'Не удалось активировать секрет';
+        err instanceof Error ? translateError(err.message) : 'Не удалось активировать промокод';
       setError(message);
     } finally {
       setSubmitting(false);
@@ -65,15 +65,15 @@ export function SecretsPage() {
 
   return (
     <section className="secrets-page">
-      <h1>Секреты</h1>
+      <h1>Промокод</h1>
       <p className="page-hint">
-        Введите персональный секретный код от организатора, чтобы получить награду.
+        Введите персональный промокод от организатора, чтобы получить награду.
       </p>
 
       <article className="card player-action-card">
         <form className="player-form" onSubmit={handleSubmit}>
           <label className="form-field">
-            <span>Секретный код</span>
+            <span>Промокод</span>
             <input
               type="text"
               value={code}

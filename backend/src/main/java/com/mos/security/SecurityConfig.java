@@ -41,10 +41,11 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/leaderboard").hasRole("ADMIN")
                         .requestMatchers("/api/wallet/**", "/api/users/**", "/api/session/**",
                                 "/api/players/**", "/api/inventory/**", "/api/locations/**", "/api/qr/**",
-                                "/api/secrets/**", "/api/score/**", "/api/leaderboard",
-                                "/api/events/**", "/api/victory-conditions/**",
+                                "/api/secrets/**",
+                                "/api/events/**",
                                 "/api/numbers/**", "/api/quests/**", "/api/trades/**").authenticated()
                         .anyRequest().permitAll()
                 )

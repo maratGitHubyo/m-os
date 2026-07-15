@@ -108,7 +108,7 @@ export function AdminWalletPage() {
           columns={[
             { key: 'nickname', header: 'Игрок', render: (row) => row.nickname },
             { key: 'userId', header: 'ID пользователя', render: (row) => <span className="mono">{row.userId}</span> },
-            { key: 'score', header: 'Очки', render: (row) => row.totalScore },
+            { key: 'balance', header: 'M-Coins', render: (row) => row.balance },
           ]}
         />
       </PageState>

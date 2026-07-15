@@ -21,14 +21,12 @@ GET /actuator/health
 | Auth | `/api/auth` | 1 |
 | Users | `/api/users` | 1 |
 | Sessions | `/api/session` | 1 |
-| Wallet | `/api/wallet` | 3 |
+| Wallet | `/api/wallet`, `/api/leaderboard` | 3 |
 | Items | `/api/items`, `/api/inventory` | 4 |
 | Locations | `/api/locations` | 5 |
 | QR | `/api/qr` | 6 |
 | Secrets | `/api/secrets` | 7 |
-| Scores | `/api/scores` | 8 |
 | Events | `/api/events` | 9 |
-| Victory | `/api/victory-conditions` | 10 |
 | Trades | `/api/trades` | 13 |
 | Admin | `/api/admin/*` | various |
 

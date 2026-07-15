@@ -210,22 +210,6 @@ public class GlobalExceptionHandler {
         return error(request, HttpStatus.NOT_IMPLEMENTED, ex.getMessage());
     }
 
-    @ExceptionHandler(LeaderboardDisabledException.class)
-    public ResponseEntity<ErrorResponse> handleLeaderboardDisabled(
-            LeaderboardDisabledException ex,
-            HttpServletRequest request
-    ) {
-        return error(request, HttpStatus.FORBIDDEN, ex.getMessage());
-    }
-
-    @ExceptionHandler(InsufficientScoreException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientScore(
-            InsufficientScoreException ex,
-            HttpServletRequest request
-    ) {
-        return error(request, HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
     @ExceptionHandler(GameEventNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleGameEventNotFound(
             GameEventNotFoundException ex,
@@ -280,6 +264,30 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return error(request, HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(QuestLimitReachedException.class)
+    public ResponseEntity<ErrorResponse> handleQuestLimitReached(
+            QuestLimitReachedException ex,
+            HttpServletRequest request
+    ) {
+        return error(request, HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(QuestNotStartedException.class)
+    public ResponseEntity<ErrorResponse> handleQuestNotStarted(
+            QuestNotStartedException ex,
+            HttpServletRequest request
+    ) {
+        return error(request, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(QuestNotAssignedException.class)
+    public ResponseEntity<ErrorResponse> handleQuestNotAssigned(
+            QuestNotAssignedException ex,
+            HttpServletRequest request
+    ) {
+        return error(request, HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(QuestNotActiveException.class)

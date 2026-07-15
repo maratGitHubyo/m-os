@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -181,6 +182,20 @@ class LocationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Bench"))
                 .andExpect(jsonPath("$.hidden").value(true));
+    }
+
+    @Test
+    void adminCanDeleteLocation() throws Exception {
+        UUID locationId = createLocation(adminToken, "To delete", false, 12.0, 18.0, "Yard");
+
+        mockMvc.perform(delete("/api/admin/locations/" + locationId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isNoContent());
+
+        assertThat(locationPointRepository.findById(locationId)).isEmpty();
+        assertThat(auditLogRepository.findAll())
+                .anyMatch(log -> log.getAction() == AuditAction.ADMIN_ACTION
+                        && log.getDescription().startsWith("Location deleted:"));
     }
 
     private UUID createLocation(

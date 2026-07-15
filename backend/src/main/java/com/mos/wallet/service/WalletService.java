@@ -2,12 +2,17 @@ package com.mos.wallet.service;
 
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
+import com.mos.common.exception.BusinessException;
 import com.mos.common.exception.CoinTransferSelfException;
 import com.mos.common.exception.CoinTransferUserNotInSessionException;
 import com.mos.common.exception.ConcurrentModificationException;
 import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.InvalidAmountException;
+import com.mos.session.entity.SessionParticipant;
+import com.mos.session.repository.GameConfigRepository;
+import com.mos.session.repository.SessionParticipantRepository;
 import com.mos.wallet.dto.CoinTransactionResponse;
+import com.mos.wallet.dto.LeaderboardEntryResponse;
 import com.mos.wallet.dto.WalletResponse;
 import com.mos.wallet.entity.CoinTransaction;
 import com.mos.wallet.entity.Wallet;
@@ -16,8 +21,6 @@ import com.mos.wallet.repository.CoinTransactionRepository;
 import com.mos.wallet.repository.WalletRepository;
 import com.mos.wallet.transfer.entity.CoinTransfer;
 import com.mos.wallet.transfer.repository.CoinTransferRepository;
-import com.mos.session.entity.SessionParticipant;
-import com.mos.session.repository.SessionParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
@@ -25,8 +28,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,10 +44,48 @@ public class WalletService {
     private final AuditService auditService;
     private final CoinTransferRepository coinTransferRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
+    private final GameConfigRepository gameConfigRepository;
 
     @Transactional(readOnly = true)
     public WalletResponse getWallet(UUID userId, UUID gameSessionId) {
         return WalletResponse.from(getOrCreateWallet(userId, gameSessionId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<LeaderboardEntryResponse> getCoinLeaderboard(UUID gameSessionId) {
+        boolean enabled = gameConfigRepository.findByGameSessionId(gameSessionId)
+                .map(config -> Boolean.TRUE.equals(config.getLeaderboardEnabled()))
+                .orElse(true);
+        if (!enabled) {
+            throw new BusinessException("Leaderboard is disabled for this session");
+        }
+
+        Map<UUID, Long> balances = walletRepository.findByGameSessionId(gameSessionId).stream()
+                .collect(Collectors.toMap(Wallet::getUserId, Wallet::getBalance));
+
+        List<LeaderboardEntryResponse> sorted = sessionParticipantRepository.findByGameSessionId(gameSessionId).stream()
+                .map(participant -> new LeaderboardEntryResponse(
+                        0,
+                        participant.getUser().getId(),
+                        participant.getNicknameSnapshot(),
+                        balances.getOrDefault(participant.getUser().getId(), 0L)
+                ))
+                .sorted(Comparator.comparingLong(LeaderboardEntryResponse::balance).reversed()
+                        .thenComparing(LeaderboardEntryResponse::nickname))
+                .toList();
+
+        List<LeaderboardEntryResponse> ranked = new ArrayList<>();
+        int rank = 0;
+        long previousBalance = -1;
+        for (int i = 0; i < sorted.size(); i++) {
+            LeaderboardEntryResponse entry = sorted.get(i);
+            if (i == 0 || !entry.balance().equals(previousBalance)) {
+                rank = i + 1;
+            }
+            previousBalance = entry.balance();
+            ranked.add(new LeaderboardEntryResponse(rank, entry.userId(), entry.nickname(), entry.balance()));
+        }
+        return ranked;
     }
 
     @Transactional(readOnly = true)

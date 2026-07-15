@@ -26,7 +26,7 @@ export function MapPage() {
         ]);
 
         if (!cancelled) {
-          setMapImageUrl(session.mapImageUrl ?? null);
+          setMapImageUrl(session.mapImageUrl ?? '/maps/dacha.png');
           setLocations(points);
           setSelected(null);
         }
@@ -55,20 +55,19 @@ export function MapPage() {
     <section className="map-page">
       <h1>Карта</h1>
       <p className="page-hint">
-        Туман войны: скрытые локации показывают только зону и маркер, пока не будут открыты.
+        План дачи по сетке А–Д / 1–11; второй этаж — Е–З / 12–14. Скрытые локации показывают
+        только зону, пока не открыты.
       </p>
 
       <PageState
         loading={loading}
         error={error}
         loadingLabel="Загрузка карты…"
-        empty={locations.length === 0}
-        emptyMessage="На карте пока нет локаций."
       >
         <>
           <GameMap
             locations={locations}
-            mapImageUrl={mapImageUrl}
+            mapImageUrl={mapImageUrl ?? '/maps/dacha.png'}
             selectedId={selected?.id ?? null}
             onSelect={setSelected}
           />
@@ -90,23 +89,27 @@ export function MapPage() {
             </article>
           )}
 
-          <ul className="map-list">
-            {locations.map((location) => {
-              const known = location.discovered || !location.hidden;
-              return (
-                <li key={location.id}>
-                  <button type="button" className="map-list__item" onClick={() => setSelected(location)}>
-                    <span className={known ? 'map-list__name' : 'map-list__name map-list__name--unknown'}>
-                      {known ? location.name : `? — ${location.zone}`}
-                    </span>
-                    <span className="map-list__coords">
-                      {location.x.toFixed(0)}%, {location.y.toFixed(0)}%
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          {locations.length === 0 ? (
+            <p className="empty-state">На карте пока нет локаций — админ может добавить их в панели.</p>
+          ) : (
+            <ul className="map-list">
+              {locations.map((location) => {
+                const known = location.discovered || !location.hidden;
+                return (
+                  <li key={location.id}>
+                    <button type="button" className="map-list__item" onClick={() => setSelected(location)}>
+                      <span className={known ? 'map-list__name' : 'map-list__name map-list__name--unknown'}>
+                        {known ? location.name : `? — ${location.zone}`}
+                      </span>
+                      <span className="map-list__coords">
+                        {location.x.toFixed(0)}%, {location.y.toFixed(0)}%
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </>
       </PageState>
     </section>

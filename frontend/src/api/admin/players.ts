@@ -1,4 +1,4 @@
-import { fetchLeaderboard } from '../score';
+import { fetchLeaderboard } from './leaderboard';
 import type { AdminPlayerRow } from '../../types/admin';
 
 export async function fetchAdminPlayers(): Promise<AdminPlayerRow[]> {
@@ -7,10 +7,9 @@ export async function fetchAdminPlayers(): Promise<AdminPlayerRow[]> {
     userId: entry.userId,
     nickname: entry.nickname,
     rank: entry.rank,
-    totalScore: entry.points,
+    balance: entry.balance,
     username: null,
     role: null,
     active: null,
-    coins: null,
   }));
 }

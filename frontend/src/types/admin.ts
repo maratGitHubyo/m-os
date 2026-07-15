@@ -4,7 +4,6 @@ import type {
   ItemTemplate,
   LeaderboardEntry,
   Quest,
-  VictoryCondition,
 } from './index';
 
 export interface AdminDashboardResponse {
@@ -20,12 +19,6 @@ export interface AdminDashboardResponse {
 export interface AdminWalletOperationRequest {
   amount: number;
   description: string;
-}
-
-export interface AdminScoreChangeRequest {
-  category: 'TOTAL' | 'EXPLORER' | 'COLLECTOR' | 'TRADER' | 'QUEST';
-  points: number;
-  reason: string;
 }
 
 export interface CreateItemTemplateRequest {
@@ -142,9 +135,12 @@ export interface CreateQuestRequest {
   title: string;
   description?: string;
   type: Quest['type'];
-  targetConfig: Record<string, unknown>;
+  targetConfig?: Record<string, unknown>;
   rewardConfig?: Record<string, unknown> | null;
   status?: 'ACTIVE' | 'DISABLED';
+  completionPolicy?: 'EVERY_PLAYER' | 'LIMITED';
+  completionLimit?: number | null;
+  assigneeUserId?: string | null;
 }
 
 export interface UpdateQuestRequest {
@@ -153,20 +149,10 @@ export interface UpdateQuestRequest {
   targetConfig?: Record<string, unknown>;
   rewardConfig?: Record<string, unknown> | null;
   status?: 'ACTIVE' | 'DISABLED';
-}
-
-export interface CreateVictoryConditionRequest {
-  type: VictoryCondition['type'];
-  targetValue?: Record<string, unknown>;
-  description: string;
-  active?: boolean;
-}
-
-export interface VictoryAdminStatusResponse {
-  gameSessionId: string;
-  anyAchieved: boolean;
-  sessionFinished: boolean;
-  conditions: VictoryCondition[];
+  completionPolicy?: 'EVERY_PLAYER' | 'LIMITED';
+  completionLimit?: number | null;
+  assigneeUserId?: string | null;
+  assignToAll?: boolean;
 }
 
 export interface CreateGameEventRequest {
@@ -185,6 +171,7 @@ export interface UpdateGameEventStatusRequest {
 export type AuditAction =
   | 'COIN_CREDIT'
   | 'COIN_DEBIT'
+  | 'COIN_TRANSFER'
   | 'ITEM_GRANT'
   | 'ITEM_TRANSFER'
   | 'QR_SCAN'
@@ -193,16 +180,13 @@ export type AuditAction =
   | 'SECRET_REDEEM'
   | 'ADMIN_ACTION'
   | 'LOCATION_DISCOVER'
-  | 'SCORE_AWARD'
-  | 'SCORE_ADD'
-  | 'SCORE_SUBTRACT'
   | 'EVENT_CREATE'
   | 'EVENT_STATUS_CHANGE'
-  | 'VICTORY_ACHIEVED'
   | 'NUMBER_GRANT'
   | 'QUEST_CREATE'
   | 'QUEST_START'
   | 'QUEST_PROGRESS'
+  | 'QUEST_CLOSE'
   | 'TRADE_CREATE'
   | 'TRADE_ACCEPT'
   | 'TRADE_DECLINE'
@@ -227,11 +211,10 @@ export interface AdminPlayerRow {
   userId: string;
   nickname: string;
   rank: number;
-  totalScore: number;
+  balance: number;
   username: string | null;
   role: string | null;
   active: boolean | null;
-  coins: number | null;
 }
 
 export type { ItemTemplate };

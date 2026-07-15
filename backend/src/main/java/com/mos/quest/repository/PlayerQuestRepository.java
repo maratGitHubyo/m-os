@@ -14,6 +14,12 @@ public interface PlayerQuestRepository extends JpaRepository<PlayerQuest, UUID> 
 
     Optional<PlayerQuest> findByQuestIdAndUserId(UUID questId, UUID userId);
 
+    long countByQuestIdAndStatus(UUID questId, PlayerQuestStatus status);
+
+    List<PlayerQuest> findByQuestIdAndStatus(UUID questId, PlayerQuestStatus status);
+
+    List<PlayerQuest> findByGameSessionIdAndStatus(UUID gameSessionId, PlayerQuestStatus status);
+
     @Query("""
             SELECT pq FROM PlayerQuest pq
             JOIN FETCH pq.quest

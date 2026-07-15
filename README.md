@@ -52,14 +52,12 @@ Browser → nginx (production) → React static / Spring Boot API
 | `auth` | Login, JWT |
 | `user` | User profile |
 | `session` | Game session, participants |
-| `wallet` | Coins, transactions |
+| `wallet` | Coins, transactions, M-Coins leaderboard |
 | `item` | Templates, inventory, transfer |
 | `location` | Map, fog of war |
 | `qrcode` | QR scan & rewards |
 | `secret` | Player secrets |
-| `score` | Score & leaderboard |
 | `event` | Game events + WebSocket |
-| `victory` | Victory conditions |
 | `numbers` | Collectible numbers |
 | `quest` | Quest system |
 | `trade` | Player trades |
@@ -87,9 +85,9 @@ Browser → nginx (production) → React static / Spring Boot API
 1. Admin starts game session (`STARTING` → `ACTIVE`)
 2. Players log in → JWT bound to session
 3. Explore map, scan QR, redeem secrets, collect numbers
-4. Complete quests (server-side progress tracking)
+4. Complete quests (self-complete social tasks)
 5. Trade items/coins with other players
-6. Achieve victory conditions → optional auto-finish
+6. Collect M-Coins toward the auction (leaderboard by balance)
 7. Admin can pause/finish session, manage entities via admin panel
 
 ---

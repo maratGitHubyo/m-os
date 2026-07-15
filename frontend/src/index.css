@@ -433,27 +433,145 @@ a {
   font-size: 0.9rem;
 }
 
-.qr-scanner-page .qr-scanner-card {
-  overflow: hidden;
-  padding: 0;
+.qr-scanner-page .qr-howto {
+  margin: 1rem 0 1.5rem;
+  padding: 1.5rem 1.25rem;
+  border: 1px solid #2f3336;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at top, rgba(29, 155, 240, 0.12), transparent 60%),
+    #16181c;
 }
 
-.qr-scanner-viewport {
-  width: 100%;
-  min-height: 280px;
-  background: #000;
+.qr-howto__lead {
+  margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: #e7e9ea;
 }
 
-.qr-scanner-viewport video {
-  width: 100%;
-  object-fit: cover;
-}
-
-.qr-scanner-hint {
+.qr-howto__steps {
   margin: 0;
-  padding: 0.75rem 1rem 1rem;
-  text-align: center;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.9rem;
+  counter-reset: qr-step;
+}
+
+.qr-howto__steps li {
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 2.75rem;
+  position: relative;
+  counter-increment: qr-step;
+}
+
+.qr-howto__steps li::before {
+  content: counter(qr-step);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.qr-howto__steps strong {
+  color: #e7e9ea;
+}
+
+.qr-howto__steps span {
   color: #71767b;
+  font-size: 0.92rem;
+}
+
+.qr-howto__note {
+  margin: 1.25rem 0 0;
+  color: #8b98a5;
+  font-size: 0.9rem;
+}
+
+.qr-hero {
+  margin: 1rem 0 1.5rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid #2f3336;
+}
+
+.qr-hero--processing {
+  background: #16181c;
+}
+
+.qr-hero--success {
+  background: #102318;
+  border-color: #00ba7c;
+}
+
+.qr-hero--error {
+  background: #2a1215;
+  border-color: #f4212e;
+}
+
+.qr-hero__eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  color: #8b98a5;
+}
+
+.qr-hero__title {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.25;
+  color: #e7e9ea;
+}
+
+.qr-hero__name {
+  margin: 0.5rem 0 0;
+  color: #cfd9de;
+  font-size: 1.05rem;
+}
+
+.qr-hero__rewards {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+  color: #e7e9ea;
+}
+
+.qr-hero__cta {
+  margin-top: 1.25rem;
+}
+
+.qr-manual {
+  margin-top: 0.5rem;
+}
+
+.qr-manual__toggle {
+  background: none;
+  border: none;
+  color: #1d9bf0;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.qr-manual__toggle:hover {
+  text-decoration: underline;
+}
+
+.qr-manual .player-form {
+  margin-top: 0.75rem;
 }
 
 .qr-created-panel {
@@ -599,6 +717,33 @@ a {
   color: #71767b;
 }
 
+.quest-card__reward {
+  margin: 0.5rem 0 1rem;
+  color: #00ba7c;
+  font-weight: 600;
+}
+
+.quest-card__note {
+  margin: 0.5rem 0 0;
+  color: #cfd9de;
+  font-style: italic;
+}
+
+.quest-card .form-field {
+  margin: 0.75rem 0 1rem;
+}
+
+.quest-card textarea {
+  border: 1px solid #2f3336;
+  border-radius: 8px;
+  background: #0f1419;
+  color: #e7e9ea;
+  padding: 0.55rem 0.75rem;
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+}
+
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -714,29 +859,35 @@ a {
 .game-map {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  max-width: 720px;
+  margin-inline: auto;
   border: 1px solid #2f3336;
   border-radius: 12px;
   overflow: hidden;
-  background: #16181c;
+  background: #f7f8fa;
 }
 
 .game-map__image,
 .game-map__placeholder {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
+  object-fit: contain;
 }
 
 .game-map__placeholder {
+  min-height: 420px;
   background:
-    linear-gradient(135deg, #1a2634 0%, #0f1419 50%, #1b2a1f 100%);
+    linear-gradient(135deg, #e8eef4 0%, #f7f8fa 50%, #eef2e8 100%);
 }
 
 .game-map__overlay {
   position: absolute;
   inset: 0;
+}
+
+.game-map--editable .game-map__overlay {
+  cursor: crosshair;
 }
 
 .map-marker {
@@ -750,6 +901,22 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
+  z-index: 1;
+}
+
+.map-marker--draft {
+  pointer-events: none;
+  z-index: 2;
+}
+
+.map-marker--draft .map-marker__dot {
+  background: #e8a317;
+  box-shadow: 0 0 0 3px rgba(232, 163, 23, 0.35);
+}
+
+.map-marker--draft .map-marker__label {
+  background: #e8a317;
+  color: #1a1a1a;
 }
 
 .map-marker__dot {
@@ -988,6 +1155,72 @@ a {
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   margin-bottom: 1.5rem;
+}
+
+.admin-map-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-bottom: 1.5rem;
+}
+
+.admin-map-editor__map .game-map {
+  max-width: none;
+}
+
+.admin-map-editor__coords {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: #e7e9ea;
+}
+
+.admin-map-editor__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-map-editor__list-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.admin-map-editor__list-row .admin-map-editor__list-item {
+  flex: 1;
+}
+
+.admin-map-editor__list-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #2f3336;
+  border-radius: 10px;
+  background: #16181c;
+  color: inherit;
+  cursor: pointer;
+}
+
+.admin-map-editor__list-item span {
+  color: #71767b;
+  font-size: 0.85rem;
+}
+
+.admin-map-editor__list-item--active {
+  border-color: #1d9bf0;
+  background: #15202b;
+}
+
+@media (max-width: 900px) {
+  .admin-map-editor {
+    grid-template-columns: 1fr;
+  }
 }
 
 .admin-form-grid {

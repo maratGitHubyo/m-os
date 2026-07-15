@@ -12,11 +12,10 @@ import com.mos.qrcode.enums.QrRewardType;
 import com.mos.qrcode.enums.QrScanPolicy;
 import com.mos.qrcode.service.QrCodeService;
 import com.mos.quest.dto.CreateQuestRequest;
+import com.mos.quest.enums.QuestCompletionPolicy;
 import com.mos.quest.enums.QuestDefinitionStatus;
 import com.mos.quest.enums.QuestType;
 import com.mos.quest.service.QuestService;
-import com.mos.score.enums.ScoreCategory;
-import com.mos.score.service.ScoreService;
 import com.mos.secret.dto.CreatePlayerSecretRequest;
 import com.mos.secret.enums.SecretRewardType;
 import com.mos.secret.service.PlayerSecretService;
@@ -29,9 +28,6 @@ import com.mos.session.repository.GameSessionRepository;
 import com.mos.session.repository.SessionParticipantRepository;
 import com.mos.user.entity.User;
 import com.mos.user.repository.UserRepository;
-import com.mos.victory.dto.CreateVictoryConditionRequest;
-import com.mos.victory.enums.VictoryConditionType;
-import com.mos.victory.service.VictoryConditionService;
 import com.mos.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,9 +58,7 @@ public class DemoDataSeeder {
     private final QrCodeService qrCodeService;
     private final PlayerSecretService playerSecretService;
     private final NumberService numberService;
-    private final ScoreService scoreService;
     private final QuestService questService;
-    private final VictoryConditionService victoryConditionService;
 
     @Transactional
     public void seedDemoData() {
@@ -120,33 +114,41 @@ public class DemoDataSeeder {
             numberService.createNumber(sessionId, new CreateCollectibleNumberRequest(value));
         }
 
-        scoreService.addPoints(alice.getId(), sessionId, ScoreCategory.TOTAL, 50, "Demo starting score", adminId);
-        scoreService.addPoints(bob.getId(), sessionId, ScoreCategory.TOTAL, 30, "Demo starting score", adminId);
-
         questService.createQuest(sessionId, new CreateQuestRequest(
-                "Find the locations",
-                "Discover key locations on the map",
-                QuestType.FIND_LOCATIONS,
-                Map.of("count", 3),
+                "Удивить именинника",
+                "Сделай что-то приятное и неожиданное для именинника. Честное слово.",
+                QuestType.SOCIAL,
+                Map.of(),
+                Map.of("type", "COIN", "amount", 40),
+                QuestDefinitionStatus.ACTIVE,
+                QuestCompletionPolicy.EVERY_PLAYER,
                 null,
-                QuestDefinitionStatus.ACTIVE
+                null
         ), adminId);
 
         questService.createQuest(sessionId, new CreateQuestRequest(
-                "Collect numbers",
-                "Collect all demo numbers",
-                QuestType.COLLECT_NUMBERS,
-                Map.of("count", 5),
-                null,
-                QuestDefinitionStatus.ACTIVE
+                "Кто первый скажет тост",
+                "Придумай и произнеси короткий тост. Награда — первому успевшему.",
+                QuestType.SOCIAL,
+                Map.of(),
+                Map.of("type", "COIN", "amount", 60),
+                QuestDefinitionStatus.ACTIVE,
+                QuestCompletionPolicy.LIMITED,
+                1,
+                null
         ), adminId);
 
-        victoryConditionService.createCondition(sessionId, new CreateVictoryConditionRequest(
-                VictoryConditionType.REACH_SCORE,
-                Map.of("category", "TOTAL", "threshold", 100),
-                "Reach 100 total points",
-                true
-        ));
+        questService.createQuest(sessionId, new CreateQuestRequest(
+                "Подарить предмет имениннику",
+                "Передай имениннику любой предмет (в жизни или через обмен в M-OS).",
+                QuestType.SOCIAL,
+                Map.of(),
+                Map.of("type", "COIN", "amount", 30),
+                QuestDefinitionStatus.ACTIVE,
+                QuestCompletionPolicy.EVERY_PLAYER,
+                null,
+                null
+        ), adminId);
 
         log.info("M-OS demo data seeded for session {}", sessionId);
     }
@@ -162,6 +164,7 @@ public class DemoDataSeeder {
 
         session.setName(DemoSeedConstants.DEMO_SESSION_NAME);
         session.setStatus(GameSessionStatus.STARTING);
+        session.setMapImageUrl("/maps/dacha.png");
         gameSessionRepository.save(session);
 
         gameSessionRepository.findByStatusIn(List.of(GameSessionStatus.ACTIVE, GameSessionStatus.STARTING)).stream()

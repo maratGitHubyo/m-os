@@ -1,40 +1,52 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createQuest, fetchAdminQuests, updateQuest } from '../../api/admin/quests';
+import { closeIncompleteQuests, createQuest, fetchAdminQuests, updateQuest } from '../../api/admin/quests';
+import { listItemTemplates } from '../../api/admin/items';
+import { fetchSessionPlayers } from '../../api/players';
 import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
-import { formatEnum, questStatus, questType, translateError, ui } from '../../i18n/ru';
+import { formatEnum, questStatus, translateError, ui } from '../../i18n/ru';
 import { showToast } from '../../stores/toastStore';
-import type { Quest } from '../../types';
+import type { ItemTemplate, Quest, SessionPlayer } from '../../types';
 
-const questTypes: Quest['type'][] = [
-  'COLLECT_ITEMS',
-  'FIND_LOCATIONS',
-  'COLLECT_NUMBERS',
-  'REACH_SCORE',
-  'CUSTOM',
-];
+type RewardKind = 'NONE' | 'COIN' | 'ITEM';
+type CompletionPolicy = 'EVERY_PLAYER' | 'LIMITED';
+type Audience = 'ALL' | 'PLAYER';
 
 export function QuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
+  const [templates, setTemplates] = useState<ItemTemplate[]>([]);
+  const [players, setPlayers] = useState<SessionPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<Quest['type']>('FIND_LOCATIONS');
-  const [targetJson, setTargetJson] = useState('{"count": 3}');
+  const [audience, setAudience] = useState<Audience>('ALL');
+  const [assigneeUserId, setAssigneeUserId] = useState('');
+  const [completionPolicy, setCompletionPolicy] = useState<CompletionPolicy>('EVERY_PLAYER');
+  const [completionLimit, setCompletionLimit] = useState('1');
+  const [rewardKind, setRewardKind] = useState<RewardKind>('COIN');
+  const [coinAmount, setCoinAmount] = useState('40');
+  const [itemTemplateId, setItemTemplateId] = useState('');
   const [status, setStatus] = useState<'ACTIVE' | 'DISABLED'>('ACTIVE');
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAdminQuests();
+      const [data, itemTemplates, sessionPlayers] = await Promise.all([
+        fetchAdminQuests(),
+        listItemTemplates(),
+        fetchSessionPlayers(),
+      ]);
       setQuests(data);
+      setTemplates(itemTemplates);
+      setPlayers(sessionPlayers);
     } catch (err) {
       setError(
         err instanceof Error ? translateError(err.message) : 'Не удалось загрузить квесты',
@@ -52,40 +64,93 @@ export function QuestsPage() {
     setEditingId(null);
     setTitle('');
     setDescription('');
-    setType('FIND_LOCATIONS');
-    setTargetJson('{"count": 3}');
+    setAudience('ALL');
+    setAssigneeUserId('');
+    setCompletionPolicy('EVERY_PLAYER');
+    setCompletionLimit('1');
+    setRewardKind('COIN');
+    setCoinAmount('40');
+    setItemTemplateId('');
     setStatus('ACTIVE');
+  };
+
+  const buildRewardConfig = (): Record<string, unknown> | null => {
+    if (rewardKind === 'COIN') {
+      return { type: 'COIN', amount: Number(coinAmount) };
+    }
+    if (rewardKind === 'ITEM') {
+      return { type: 'ITEM', itemTemplateId };
+    }
+    return null;
+  };
+
+  const playerName = (userId: string | null | undefined) => {
+    if (!userId) {
+      return 'Все';
+    }
+    return players.find((player) => player.id === userId)?.nickname ?? 'Игрок';
   };
 
   const startEdit = (quest: Quest) => {
     setEditingId(quest.id);
     setTitle(quest.title);
-    setDescription(quest.description);
-    setType(quest.type);
-    setTargetJson(JSON.stringify(quest.targetConfig));
+    setDescription(quest.description ?? '');
+    setCompletionPolicy(quest.completionPolicy ?? 'EVERY_PLAYER');
+    setCompletionLimit(String(quest.completionLimit ?? 1));
     setStatus(quest.status);
+    if (quest.assigneeUserId) {
+      setAudience('PLAYER');
+      setAssigneeUserId(quest.assigneeUserId);
+    } else {
+      setAudience('ALL');
+      setAssigneeUserId('');
+    }
+
+    const reward = quest.rewardConfig;
+    const type = reward?.type ? String(reward.type).toUpperCase() : 'NONE';
+    if (type === 'COIN') {
+      setRewardKind('COIN');
+      setCoinAmount(String(reward?.amount ?? 40));
+      setItemTemplateId('');
+    } else if (type === 'ITEM') {
+      setRewardKind('ITEM');
+      setItemTemplateId(String(reward?.itemTemplateId ?? ''));
+    } else {
+      setRewardKind('NONE');
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (audience === 'PLAYER' && !assigneeUserId) {
+      showToast('Выберите игрока', 'error');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const targetConfig = JSON.parse(targetJson) as Record<string, unknown>;
+      const rewardConfig = buildRewardConfig();
+      const effectivePolicy = audience === 'PLAYER' ? 'EVERY_PLAYER' : completionPolicy;
+      const payload = {
+        title,
+        description,
+        rewardConfig,
+        status,
+        completionPolicy: effectivePolicy,
+        completionLimit:
+          audience === 'ALL' && effectivePolicy === 'LIMITED' ? Number(completionLimit) : null,
+        assigneeUserId: audience === 'PLAYER' ? assigneeUserId : null,
+        assignToAll: audience === 'ALL',
+      };
+
       if (editingId) {
-        await updateQuest(editingId, {
-          title,
-          description,
-          targetConfig,
-          status,
-        });
+        await updateQuest(editingId, payload);
         showToast('Квест обновлён');
       } else {
         await createQuest({
-          title,
-          description,
-          type,
-          targetConfig,
-          status,
+          ...payload,
+          type: 'SOCIAL',
+          targetConfig: {},
         });
         showToast('Квест создан');
       }
@@ -101,40 +166,212 @@ export function QuestsPage() {
     }
   };
 
+  const handleCloseIncomplete = async () => {
+    if (!window.confirm('Закрыть все незавершённые квесты? Игроки больше не смогут их сдать.')) {
+      return;
+    }
+    setClosing(true);
+    try {
+      const result = await closeIncompleteQuests();
+      showToast(`Закрыто активных сдач: ${result.closedPlayerQuests}`);
+      await load();
+    } catch (err) {
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось закрыть квесты',
+        'error',
+      );
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  const policyLabel = (quest: Quest) => {
+    if (quest.assigneeUserId) {
+      return `Личное · ${playerName(quest.assigneeUserId)}`;
+    }
+    if (quest.completionPolicy === 'LIMITED') {
+      return `Лимит ${quest.completedCount}/${quest.completionLimit ?? 0}`;
+    }
+    return `Всем · ${quest.completedCount} сдач`;
+  };
+
   return (
     <section>
-      <PageHeader title="Квесты" description="Создание и редактирование квестов." />
+      <PageHeader
+        title="Квесты"
+        description="Создавайте задания для всех гостей или для одного игрока."
+      />
+
+      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
+        <button
+          type="button"
+          className="btn btn--secondary"
+          disabled={closing}
+          onClick={() => void handleCloseIncomplete()}
+        >
+          {closing ? 'Закрываем…' : 'Закрыть незавершённые (перед аукционом)'}
+        </button>
+      </div>
 
       <FormCard title={editingId ? 'Редактировать квест' : 'Создать квест'}>
         <form className="admin-form-grid" onSubmit={(event) => void handleSubmit(event)}>
-          <label className="form-field">
+          <label className="form-field form-field--wide">
             <span>Название</span>
             <input value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
-          {!editingId && (
+          <label className="form-field form-field--wide">
+            <span>Описание</span>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Удивить именинника, придумать тост…"
+            />
+          </label>
+
+          <fieldset className="form-field form-field--wide">
+            <legend>Кому задание</legend>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="audience"
+                checked={audience === 'ALL'}
+                onChange={() => setAudience('ALL')}
+              />
+              Всем игрокам
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="audience"
+                checked={audience === 'PLAYER'}
+                onChange={() => setAudience('PLAYER')}
+              />
+              Конкретному игроку
+            </label>
+          </fieldset>
+
+          {audience === 'PLAYER' && (
             <label className="form-field">
-              <span>Тип</span>
+              <span>Игрок</span>
               <select
                 className="form-select"
-                value={type}
-                onChange={(event) => setType(event.target.value as Quest['type'])}
+                value={assigneeUserId}
+                onChange={(event) => setAssigneeUserId(event.target.value)}
+                required
               >
-                {questTypes.map((value) => (
-                  <option key={value} value={value}>
-                    {formatEnum(value, questType)}
+                <option value="">Выберите игрока</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.nickname}
                   </option>
                 ))}
               </select>
             </label>
           )}
-          <label className="form-field form-field--wide">
-            <span>Описание</span>
-            <input value={description} onChange={(event) => setDescription(event.target.value)} />
-          </label>
-          <label className="form-field form-field--wide">
-            <span>Цель (JSON)</span>
-            <input value={targetJson} onChange={(event) => setTargetJson(event.target.value)} />
-          </label>
+
+          {audience === 'ALL' && (
+            <>
+              <fieldset className="form-field form-field--wide">
+                <legend>Кто может выполнить</legend>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="policy"
+                    checked={completionPolicy === 'EVERY_PLAYER'}
+                    onChange={() => setCompletionPolicy('EVERY_PLAYER')}
+                  />
+                  Каждый гость один раз
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="policy"
+                    checked={completionPolicy === 'LIMITED'}
+                    onChange={() => setCompletionPolicy('LIMITED')}
+                  />
+                  Ограниченное число (кто быстрее)
+                </label>
+              </fieldset>
+
+              {completionPolicy === 'LIMITED' && (
+                <label className="form-field">
+                  <span>Сколько человек успеют</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={completionLimit}
+                    onChange={(event) => setCompletionLimit(event.target.value)}
+                    required
+                  />
+                </label>
+              )}
+            </>
+          )}
+
+          <fieldset className="form-field form-field--wide">
+            <legend>Награда</legend>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="reward"
+                checked={rewardKind === 'NONE'}
+                onChange={() => setRewardKind('NONE')}
+              />
+              Нет
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="reward"
+                checked={rewardKind === 'COIN'}
+                onChange={() => setRewardKind('COIN')}
+              />
+              Монеты
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="reward"
+                checked={rewardKind === 'ITEM'}
+                onChange={() => setRewardKind('ITEM')}
+              />
+              Предмет
+            </label>
+          </fieldset>
+
+          {rewardKind === 'COIN' && (
+            <label className="form-field">
+              <span>Количество M-Coins</span>
+              <input
+                type="number"
+                min={1}
+                value={coinAmount}
+                onChange={(event) => setCoinAmount(event.target.value)}
+                required
+              />
+            </label>
+          )}
+
+          {rewardKind === 'ITEM' && (
+            <label className="form-field">
+              <span>Предмет</span>
+              <select
+                className="form-select"
+                value={itemTemplateId}
+                onChange={(event) => setItemTemplateId(event.target.value)}
+                required
+              >
+                <option value="">Выберите предмет</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="form-field">
             <span>Статус</span>
             <select
@@ -146,6 +383,7 @@ export function QuestsPage() {
               <option value="DISABLED">Отключён</option>
             </select>
           </label>
+
           <div className="admin-actions">
             <button type="submit" className="btn btn--primary" disabled={submitting}>
               {editingId ? ui.save : 'Создать квест'}
@@ -166,7 +404,7 @@ export function QuestsPage() {
           rowKey={(row) => row.id}
           columns={[
             { key: 'title', header: 'Название', render: (row) => row.title },
-            { key: 'type', header: 'Тип', render: (row) => formatEnum(row.type, questType) },
+            { key: 'policy', header: 'Кому', render: (row) => policyLabel(row) },
             {
               key: 'status',
               header: 'Статус',
@@ -177,7 +415,11 @@ export function QuestsPage() {
               key: 'actions',
               header: '',
               render: (row) => (
-                <button type="button" className="btn btn--secondary btn--small" onClick={() => startEdit(row)}>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--small"
+                  onClick={() => startEdit(row)}
+                >
                   {ui.edit}
                 </button>
               ),

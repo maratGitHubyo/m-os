@@ -28,3 +28,9 @@ export async function updateLocation(
     body: JSON.stringify(request),
   });
 }
+
+export async function deleteLocation(id: string): Promise<void> {
+  await apiFetch<void>(`/api/admin/locations/${id}`, {
+    method: 'DELETE',
+  });
+}

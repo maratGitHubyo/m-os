@@ -13,19 +13,15 @@ import { NumbersPage } from './pages/admin/NumbersPage';
 import { PlayersPage } from './pages/admin/PlayersPage';
 import { QrCodesPage } from './pages/admin/QrCodesPage';
 import { QuestsPage } from './pages/admin/QuestsPage';
-import { AdminScorePage } from './pages/admin/ScorePage';
 import { SecretsPage } from './pages/admin/SecretsPage';
 import { SessionPage } from './pages/admin/SessionPage';
-import { AdminVictoryPage } from './pages/admin/VictoryPage';
 import { AdminWalletPage } from './pages/admin/WalletPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { EventsPage } from './pages/EventsPage';
 import { InventoryPage } from './pages/InventoryPage';
-import { LeaderboardPage } from './pages/LeaderboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { MapPage } from './pages/MapPage';
 import { QuestPage } from './pages/QuestPage';
-import { VictoryPage } from './pages/VictoryPage';
 import { WalletPage } from './pages/WalletPage';
 import { QrScanPage } from './pages/QrScanPage';
 import { QrScannerPage } from './pages/QrScannerPage';
@@ -54,12 +50,11 @@ export function App() {
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/scan" element={<QrScannerPage />} />
+            <Route path="/qr/:publicId" element={<QrScannerPage />} />
             <Route path="/qr" element={<QrScanPage />} />
             <Route path="/secrets" element={<PlayerSecretsPage />} />
             <Route path="/trades" element={<TradesPage />} />
             <Route path="/quests" element={<QuestPage />} />
-            <Route path="/score" element={<LeaderboardPage />} />
-            <Route path="/victory" element={<VictoryPage />} />
             <Route path="/events" element={<EventsPage />} />
           </Route>
 
@@ -69,14 +64,12 @@ export function App() {
               <Route path="session" element={<SessionPage />} />
               <Route path="players" element={<PlayersPage />} />
               <Route path="wallet" element={<AdminWalletPage />} />
-              <Route path="score" element={<AdminScorePage />} />
               <Route path="items" element={<ItemsPage />} />
               <Route path="locations" element={<LocationsPage />} />
               <Route path="qr" element={<QrCodesPage />} />
               <Route path="secrets" element={<SecretsPage />} />
               <Route path="numbers" element={<NumbersPage />} />
               <Route path="quests" element={<QuestsPage />} />
-              <Route path="victory" element={<AdminVictoryPage />} />
               <Route path="events" element={<AdminEventsPage />} />
               <Route path="audit" element={<AuditPage />} />
             </Route>

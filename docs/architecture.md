@@ -36,7 +36,7 @@ M-OS/
 Controller → Service → Repository → Database
 ```
 
-Пакеты: `com.mos.{session,user,wallet,item,qrcode,location,secret,score,event,trade,audit,...}`
+Пакеты: `com.mos.{session,user,wallet,item,qrcode,location,secret,event,trade,quest,audit,...}`
 
 ## Frontend
 
@@ -64,9 +64,9 @@ Production Docker + nginx — этап 15 (перед дачей).
 
 startingCoins, maxTradeOffers, numbersTotal, fogOfWarEnabled, secretsEnabled, leaderboardEnabled, customSettings (JSON).
 
-### VictoryCondition
+### Wallet / Leaderboard
 
-Условия победы: COLLECT_ALL_NUMBERS, COLLECT_UNIQUE_ITEMS, REACH_SCORE, FIND_ALL_LOCATIONS, CUSTOM.
+Рейтинг строится по балансу M-Coins участников сессии (`GET /api/leaderboard`, только ADMIN).
 
 ### User
 

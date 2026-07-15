@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { ApiError } from '../api/client';
 import { translateError } from '../i18n/ru';
@@ -7,6 +7,7 @@ import { login as saveAuth } from '../stores/authStore';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,14 @@ export function LoginPage() {
     try {
       const response = await loginApi({ username, password });
       saveAuth(response.token, response.user, response.session, username);
-      navigate('/', { replace: true });
+      const from =
+        typeof location.state === 'object' &&
+        location.state !== null &&
+        'from' in location.state &&
+        typeof (location.state as { from?: unknown }).from === 'string'
+          ? (location.state as { from: string }).from
+          : '/';
+      navigate(from || '/', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError(translateError('Invalid username or password'));

@@ -13,8 +13,6 @@ import com.mos.location.entity.PlayerLocationDiscovery;
 import com.mos.location.repository.LocationPointRepository;
 import com.mos.location.repository.PlayerLocationDiscoveryRepository;
 import com.mos.quest.service.QuestService;
-import com.mos.victory.service.VictoryConditionService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,20 +29,17 @@ public class LocationService {
     private final LocationPointRepository locationPointRepository;
     private final PlayerLocationDiscoveryRepository playerLocationDiscoveryRepository;
     private final AuditService auditService;
-    private final VictoryConditionService victoryConditionService;
     private final QuestService questService;
 
     public LocationService(
             LocationPointRepository locationPointRepository,
             PlayerLocationDiscoveryRepository playerLocationDiscoveryRepository,
             AuditService auditService,
-            VictoryConditionService victoryConditionService,
             @Lazy QuestService questService
     ) {
         this.locationPointRepository = locationPointRepository;
         this.playerLocationDiscoveryRepository = playerLocationDiscoveryRepository;
         this.auditService = auditService;
-        this.victoryConditionService = victoryConditionService;
         this.questService = questService;
     }
 
@@ -93,6 +88,25 @@ public class LocationService {
         return AdminLocationPointResponse.from(locationPointRepository.save(location));
     }
 
+    @Transactional
+    public void deleteLocation(UUID locationId, UUID gameSessionId, UUID performedByUserId) {
+        LocationPoint location = getLocationForSession(locationId, gameSessionId);
+        String name = location.getName();
+        UUID id = location.getId();
+
+        locationPointRepository.delete(location);
+
+        auditService.log(
+                performedByUserId,
+                gameSessionId,
+                AuditAction.ADMIN_ACTION,
+                "LocationPoint",
+                id.toString(),
+                "Location deleted: " + name,
+                Map.of("locationId", id.toString(), "name", name)
+        );
+    }
+
     @Transactional(readOnly = true)
     public List<LocationPointResponse> getLocations(UUID userId, UUID gameSessionId) {
         List<LocationPoint> locations = locationPointRepository.findByGameSessionIdOrderByZoneAscNameAsc(gameSessionId);
@@ -139,7 +153,6 @@ public class LocationService {
                 )
         );
 
-        victoryConditionService.checkAfterGameDataChange(userId, gameSessionId);
         questService.updateProgressAfterLocationDiscover(userId, gameSessionId);
 
         return LocationPointResponse.forPlayer(location, true);

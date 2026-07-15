@@ -1,7 +1,7 @@
 package com.mos.admin.dto;
 
-import com.mos.score.dto.LeaderboardEntryResponse;
 import com.mos.session.dto.GameSessionResponse;
+import com.mos.wallet.dto.LeaderboardEntryResponse;
 
 import java.util.List;
 

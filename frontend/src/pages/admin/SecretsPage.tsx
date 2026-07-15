@@ -41,13 +41,13 @@ export function SecretsPage() {
         rewardPayload,
       });
       setSecrets((current) => [...current, created]);
-      showToast(`Секрет «${created.code}» создан`);
+      showToast(`Промокод «${created.code}» создан`);
       setCode('');
       setTitle('');
       setDescription('');
     } catch (err) {
       showToast(
-        err instanceof Error ? translateError(err.message) : 'Не удалось создать секрет',
+        err instanceof Error ? translateError(err.message) : 'Не удалось создать промокод',
         'error',
       );
     } finally {
@@ -58,11 +58,11 @@ export function SecretsPage() {
   return (
     <section>
       <PageHeader
-        title="Секреты"
-        description="Создание секретов для игроков. Список показывает секреты, созданные в этой сессии браузера (нет API списка)."
+        title="Промокод"
+        description="Создание промокодов для игроков. Список показывает коды, созданные в этой сессии браузера (нет API списка)."
       />
 
-      <FormCard title="Создать секрет">
+      <FormCard title="Создать промокод">
         <form className="admin-form-grid" onSubmit={(event) => void handleCreate(event)}>
           <label className="form-field">
             <span>Игрок</span>
@@ -101,14 +101,14 @@ export function SecretsPage() {
             <input value={payloadJson} onChange={(event) => setPayloadJson(event.target.value)} />
           </label>
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            Создать секрет
+            Создать промокод
           </button>
         </form>
       </FormCard>
 
-      <h2 className="section-title">Секреты (сессия)</h2>
+      <h2 className="section-title">Промокоды (сессия)</h2>
       {secrets.length === 0 ? (
-        <p className="empty-state">В этой сессии пока нет секретов.</p>
+        <p className="empty-state">В этой сессии пока нет промокодов.</p>
       ) : (
         <DataTable
           rows={secrets}

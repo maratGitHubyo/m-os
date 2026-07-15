@@ -1,5 +1,6 @@
 package com.mos.quest.entity;
 
+import com.mos.quest.enums.QuestCompletionPolicy;
 import com.mos.quest.enums.QuestDefinitionStatus;
 import com.mos.quest.enums.QuestType;
 import jakarta.persistence.Column;
@@ -54,6 +55,17 @@ public class Quest {
     @Column(nullable = false, length = 50)
     private QuestDefinitionStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "completion_policy", nullable = false, length = 50)
+    @Builder.Default
+    private QuestCompletionPolicy completionPolicy = QuestCompletionPolicy.EVERY_PLAYER;
+
+    @Column(name = "completion_limit")
+    private Integer completionLimit;
+
+    @Column(name = "assignee_user_id")
+    private UUID assigneeUserId;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "target_config", nullable = false, columnDefinition = "jsonb")
     @Builder.Default
@@ -76,6 +88,9 @@ public class Quest {
         }
         if (status == null) {
             status = QuestDefinitionStatus.ACTIVE;
+        }
+        if (completionPolicy == null) {
+            completionPolicy = QuestCompletionPolicy.EVERY_PLAYER;
         }
     }
 }

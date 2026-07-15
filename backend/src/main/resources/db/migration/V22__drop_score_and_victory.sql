@@ -1,0 +1,28 @@
+-- Remove score and victory systems; ranking is by M-Coins only
+
+UPDATE quests SET type = 'CUSTOM' WHERE type = 'REACH_SCORE';
+
+ALTER TABLE quests DROP CONSTRAINT IF EXISTS chk_quests_type;
+ALTER TABLE quests ADD CONSTRAINT chk_quests_type CHECK (
+    type IN ('COLLECT_ITEMS', 'FIND_LOCATIONS', 'COLLECT_NUMBERS', 'CUSTOM', 'SOCIAL')
+);
+
+DROP TABLE IF EXISTS score_transactions;
+DROP TABLE IF EXISTS player_scores;
+DROP TABLE IF EXISTS victory_conditions;
+
+DELETE FROM audit_log
+WHERE action IN ('SCORE_AWARD', 'SCORE_ADD', 'SCORE_SUBTRACT', 'VICTORY_ACHIEVED');
+
+ALTER TABLE audit_log DROP CONSTRAINT chk_audit_log_action;
+ALTER TABLE audit_log ADD CONSTRAINT chk_audit_log_action CHECK (
+    action IN (
+        'COIN_CREDIT', 'COIN_DEBIT', 'COIN_TRANSFER', 'ITEM_GRANT', 'ITEM_TRANSFER',
+        'QR_SCAN', 'TRADE_COMPLETE', 'QUEST_COMPLETE', 'SECRET_REDEEM',
+        'ADMIN_ACTION', 'LOCATION_DISCOVER',
+        'EVENT_CREATE', 'EVENT_STATUS_CHANGE', 'NUMBER_GRANT',
+        'QUEST_CREATE', 'QUEST_START', 'QUEST_PROGRESS', 'QUEST_CLOSE',
+        'TRADE_CREATE', 'TRADE_ACCEPT', 'TRADE_DECLINE', 'TRADE_CANCEL',
+        'SESSION_START', 'SESSION_PAUSE', 'SESSION_FINISH'
+    )
+);

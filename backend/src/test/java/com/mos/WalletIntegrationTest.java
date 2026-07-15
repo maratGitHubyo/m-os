@@ -130,6 +130,19 @@ class WalletIntegrationTest {
     }
 
     @Test
+    void coinLeaderboardSortedByBalance() throws Exception {
+        String token = loginAsAdmin();
+        credit(token, 250);
+
+        mockMvc.perform(get("/api/leaderboard")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].userId").value(ADMIN_USER_ID.toString()))
+                .andExpect(jsonPath("$[0].balance").value(250))
+                .andExpect(jsonPath("$[0].rank").value(1));
+    }
+
+    @Test
     void walletEndpointsRequireAuthentication() throws Exception {
         mockMvc.perform(get("/api/wallet/me"))
                 .andExpect(status().isUnauthorized());

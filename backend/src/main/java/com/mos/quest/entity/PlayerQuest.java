@@ -57,6 +57,9 @@ public class PlayerQuest {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> progress;
 
+    @Column(name = "completion_note", columnDefinition = "TEXT")
+    private String completionNote;
+
     @Column(name = "completed_at")
     private Instant completedAt;
 

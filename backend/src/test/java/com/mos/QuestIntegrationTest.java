@@ -225,35 +225,12 @@ class QuestIntegrationTest {
     }
 
     @Test
-    void scoreQuestCompletes() throws Exception {
-        UUID questId = createQuest("""
-                {
-                  "title":"Reach score",
-                  "description":"Get 50 points",
-                  "type":"REACH_SCORE",
-                  "targetConfig":{"category":"TOTAL","threshold":50}
-                }
-                """);
-        startQuest(questId);
-
-        mockMvc.perform(post("/api/admin/score/" + ADMIN_USER_ID + "/add")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"category":"TOTAL","points":50,"reason":"Quest test"}
-                                """))
-                .andExpect(status().isOk());
-
-        assertThat(playerQuestRepository.findAll().getFirst().getStatus()).isEqualTo(PlayerQuestStatus.COMPLETED);
-    }
-
-    @Test
     void rewardGrantedOnComplete() throws Exception {
         UUID templateId = createItemTemplate("Reward Sword");
         UUID questId = createQuest("""
                 {
                   "title":"Rewarded quest",
-                  "description":"Coin, item and score",
+                  "description":"Coin and item rewards",
                   "type":"COLLECT_ITEMS",
                   "targetConfig":{"count":1},
                   "rewardConfig":{"type":"COIN","amount":250}
@@ -285,29 +262,6 @@ class QuestIntegrationTest {
 
         assertThat(playerItemRepository.findByOwnerIdAndGameSessionIdOrderByAcquiredAtDesc(ADMIN_USER_ID, GAME_SESSION_ID))
                 .isNotEmpty();
-
-        UUID scoreRewardQuestId = createQuest("""
-                {
-                  "title":"Score reward quest",
-                  "description":"Grant score reward",
-                  "type":"REACH_SCORE",
-                  "targetConfig":{"category":"TOTAL","threshold":10},
-                  "rewardConfig":{"type":"SCORE","category":"TOTAL","points":15}
-                }
-                """);
-        startQuest(scoreRewardQuestId);
-
-        mockMvc.perform(post("/api/admin/score/" + ADMIN_USER_ID + "/add")
-                        .header("Authorization", "Bearer " + adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"category":"TOTAL","points":10,"reason":"Score reward quest"}
-                                """))
-                .andExpect(status().isOk());
-
-        assertThat(playerQuestRepository.findByQuestIdAndUserId(scoreRewardQuestId, ADMIN_USER_ID)
-                .orElseThrow()
-                .getStatus()).isEqualTo(PlayerQuestStatus.COMPLETED);
     }
 
     @Test
@@ -344,12 +298,18 @@ class QuestIntegrationTest {
     @Test
     void playerGetsAvailableAndMyQuests() throws Exception {
         UUID questId = createCollectItemsQuest(1, null);
-        startQuest(questId);
 
         mockMvc.perform(get("/api/quests")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(questId.toString()));
+
+        startQuest(questId);
+
+        mockMvc.perform(get("/api/quests")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
 
         mockMvc.perform(get("/api/quests/me")
                         .header("Authorization", "Bearer " + adminToken))

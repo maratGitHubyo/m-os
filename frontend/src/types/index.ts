@@ -133,8 +133,10 @@ export type QuestType =
   | 'COLLECT_ITEMS'
   | 'FIND_LOCATIONS'
   | 'COLLECT_NUMBERS'
-  | 'REACH_SCORE'
-  | 'CUSTOM';
+  | 'CUSTOM'
+  | 'SOCIAL';
+
+export type QuestCompletionPolicy = 'EVERY_PLAYER' | 'LIMITED';
 
 export type QuestDefinitionStatus = 'ACTIVE' | 'DISABLED';
 
@@ -147,6 +149,11 @@ export interface Quest {
   description: string;
   type: QuestType;
   status: QuestDefinitionStatus;
+  completionPolicy: QuestCompletionPolicy;
+  completionLimit: number | null;
+  assigneeUserId: string | null;
+  completedCount: number;
+  available: boolean;
   targetConfig: Record<string, unknown>;
   rewardConfig: Record<string, unknown> | null;
   createdAt: string;
@@ -159,25 +166,17 @@ export interface QuestProgress {
   gameSessionId: string;
   status: PlayerQuestStatus;
   progress: Record<string, unknown>;
+  completionNote: string | null;
   completedAt: string | null;
   createdAt: string;
   quest: Quest;
-}
-
-export type ScoreCategory = 'TOTAL' | 'EXPLORER' | 'COLLECTOR' | 'TRADER' | 'QUEST';
-
-export interface Score {
-  userId: string;
-  gameSessionId: string;
-  category: ScoreCategory;
-  points: number;
 }
 
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
   nickname: string;
-  points: number;
+  balance: number;
 }
 
 export interface SessionPlayer {
@@ -252,29 +251,6 @@ export interface CreateTradeRequest {
   receiverItemIds?: string[];
   initiatorCoins?: number;
   receiverCoins?: number;
-}
-
-export type VictoryConditionType =
-  | 'COLLECT_ALL_NUMBERS'
-  | 'COLLECT_UNIQUE_ITEMS'
-  | 'REACH_SCORE'
-  | 'FIND_ALL_LOCATIONS'
-  | 'CUSTOM';
-
-export interface VictoryCondition {
-  id: string;
-  gameSessionId: string;
-  type: VictoryConditionType;
-  targetValue: Record<string, unknown>;
-  description: string;
-  active: boolean;
-  achieved: boolean;
-  achievedAt: string | null;
-  achievedByUserId: string | null;
-  achievedByMe: boolean;
-  progressCurrent: number | null;
-  progressTarget: number | null;
-  progressLabel: string | null;
 }
 
 export type GameEventType =

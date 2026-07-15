@@ -10,7 +10,7 @@ export function PlayersPage() {
     <section>
       <PageHeader
         title="Игроки"
-        description="Участники сессии из рейтинга. Логин, роль, активность и монеты требуют отдельного API списка."
+        description="Участники сессии по балансу M-Coins."
       />
 
       <PageState
@@ -23,12 +23,9 @@ export function PlayersPage() {
           rows={players}
           rowKey={(row) => row.userId}
           columns={[
+            { key: 'rank', header: 'Место', render: (row) => `#${row.rank}` },
             { key: 'nickname', header: 'Никнейм', render: (row) => row.nickname },
-            { key: 'username', header: 'Логин', render: () => '—' },
-            { key: 'role', header: 'Роль', render: () => '—' },
-            { key: 'active', header: 'Активен', render: () => '—' },
-            { key: 'coins', header: 'М-коины', render: () => '—' },
-            { key: 'score', header: 'Общий счёт', render: (row) => row.totalScore },
+            { key: 'balance', header: 'M-Coins', render: (row) => row.balance },
           ]}
         />
       </PageState>

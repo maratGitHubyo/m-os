@@ -7,6 +7,7 @@ import com.mos.quest.service.QuestService;
 import com.mos.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +26,12 @@ import java.util.UUID;
 public class AdminQuestController {
 
     private final QuestService questService;
+
+    @GetMapping
+    public java.util.List<QuestResponse> listQuests() {
+        var admin = SecurityUtils.getCurrentUser();
+        return questService.listQuestsForAdmin(admin.gameSessionId());
+    }
 
     @PostMapping
     public QuestResponse createQuest(@Valid @RequestBody CreateQuestRequest request) {
@@ -38,5 +46,16 @@ public class AdminQuestController {
     ) {
         var admin = SecurityUtils.getCurrentUser();
         return questService.updateQuest(id, admin.gameSessionId(), request);
+    }
+
+    @PostMapping("/close-incomplete")
+    public Map<String, Object> closeIncompleteQuests() {
+        var admin = SecurityUtils.getCurrentUser();
+        int closedPlayerQuests = questService.closeIncompleteQuests(admin.gameSessionId(), admin.userId());
+        return Map.of(
+                "success", true,
+                "closedPlayerQuests", closedPlayerQuests,
+                "message", "Incomplete quests closed"
+        );
     }
 }

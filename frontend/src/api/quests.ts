@@ -15,3 +15,13 @@ export async function startQuest(questId: string): Promise<QuestProgress> {
   });
   return response.playerQuest;
 }
+
+export async function completeQuest(
+  questId: string,
+  note?: string,
+): Promise<QuestProgress> {
+  return apiFetch<QuestProgress>(`/api/quests/${questId}/complete`, {
+    method: 'POST',
+    body: JSON.stringify({ note: note?.trim() || null }),
+  });
+}

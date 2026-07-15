@@ -17,11 +17,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   'QR already scanned': 'Этот QR уже найден вами',
   'QR unavailable': 'QR недоступен',
   'You have already scanned this QR code': 'Вы уже сканировали этот QR-код',
+  'Quest completion limit reached': 'Лимит выполнений квеста исчерпан',
+  'Quest is not started': 'Сначала возьмите квест',
+  'Quest is no longer available for you': 'Этот квест для вас больше недоступен',
+  'Quest is not assigned to you': 'Это задание назначено другому игроку',
+  'Assignee is not a participant of this game session': 'Выбранный игрок не в текущей сессии',
   'QR code scan limit reached': 'Лимит сканирований QR-кода исчерпан',
   'QR code is inactive': 'QR-код неактивен',
-  'Secret code not found': 'Секретный код не найден',
-  'This secret is not assigned to you': 'Этот секрет не назначен вам',
-  'Secret code has already been used': 'Секретный код уже использован',
+  'Secret code not found': 'Промокод не найден',
+  'This secret is not assigned to you': 'Этот промокод не назначен вам',
+  'Secret code has already been used': 'Промокод уже использован',
   'Reward type not yet implemented: NUMBER': 'Награда «число» пока не реализована',
   'Reward type not yet implemented: QUEST': 'Награда «квест» пока не реализована',
   'Trade not found': 'Обмен не найден',
@@ -52,8 +57,9 @@ export const sessionStatus: Record<string, string> = {
 export const questStatus: Record<string, string> = {
   ACTIVE: 'Активно',
   COMPLETED: 'Выполнено',
-  FAILED: 'Провалено',
+  FAILED: 'Закрыто',
   AVAILABLE: 'Доступно',
+  DISABLED: 'Отключён',
 };
 
 export const eventStatus: Record<string, string> = {
@@ -77,24 +83,12 @@ export const gameEventType: Record<string, string> = {
   CUSTOM: 'Особое',
 };
 
-export const victoryType: Record<string, string> = {
-  SCORE_THRESHOLD: 'Набрать очки',
-  COLLECT_NUMBERS: 'Собрать числа',
-  COLLECT_ALL_NUMBERS: 'Собрать все числа',
-  COLLECT_UNIQUE_ITEMS: 'Собрать уникальные предметы',
-  REACH_SCORE: 'Набрать очки',
-  FIND_LOCATIONS: 'Найти локации',
-  FIND_ALL_LOCATIONS: 'Найти все локации',
-  COLLECT_ITEMS: 'Собрать предметы',
-  CUSTOM: 'Особое условие',
-};
-
 export const questType: Record<string, string> = {
   COLLECT_ITEMS: 'Собрать предметы',
   FIND_LOCATIONS: 'Найти локации',
   COLLECT_NUMBERS: 'Собрать числа',
-  REACH_SCORE: 'Набрать очки',
   CUSTOM: 'Особое',
+  SOCIAL: 'Социальное',
 };
 
 export const itemRarity: Record<string, string> = {

@@ -2,27 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchCurrentSession } from '../api/locations';
 import { fetchMyQuests } from '../api/quests';
-import { fetchMyScores } from '../api/score';
-import { fetchVictoryConditions } from '../api/victory';
 import { fetchMyWallet } from '../api/wallet';
 import { PageState } from '../components/ui/PageState';
 import { formatEnum, questType, roleLabel, sessionStatus, translateError } from '../i18n/ru';
 import { useAuth } from '../stores/authStore';
-import type {
-  GameSessionInfo,
-  QuestProgress,
-  Score,
-  VictoryCondition,
-  Wallet,
-} from '../types';
+import type { GameSessionInfo, QuestProgress, Wallet } from '../types';
 
 export function DashboardPage() {
   const { user, session } = useAuth();
   const [sessionInfo, setSessionInfo] = useState<GameSessionInfo | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [scores, setScores] = useState<Score[]>([]);
   const [quests, setQuests] = useState<QuestProgress[]>([]);
-  const [victory, setVictory] = useState<VictoryCondition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,20 +24,16 @@ export function DashboardPage() {
       setError(null);
 
       try {
-        const [currentSession, myWallet, myScores, myQuests, conditions] = await Promise.all([
+        const [currentSession, myWallet, myQuests] = await Promise.all([
           fetchCurrentSession(),
           fetchMyWallet(),
-          fetchMyScores(),
           fetchMyQuests(),
-          fetchVictoryConditions(),
         ]);
 
         if (!cancelled) {
           setSessionInfo(currentSession);
           setWallet(myWallet);
-          setScores(myScores);
           setQuests(myQuests);
-          setVictory(conditions);
         }
       } catch (err) {
         if (!cancelled) {
@@ -70,9 +56,7 @@ export function DashboardPage() {
     };
   }, []);
 
-  const totalScore = scores.find((score) => score.category === 'TOTAL')?.points ?? 0;
   const activeQuests = quests.filter((quest) => quest.status === 'ACTIVE');
-  const achievedVictory = victory.filter((condition) => condition.achieved);
 
   return (
     <section className="dashboard-page">
@@ -84,15 +68,15 @@ export function DashboardPage() {
           <article className="card card--wide dashboard-flow">
             <h2>Игровой цикл</h2>
             <p className="page-hint dashboard-flow__steps">
-              Исследовать → Получить награду → Обменяться → Набрать очки → Победить
+              Исследовать → Получить M-Coins → Обменяться → Собрать больше к аукциону
             </p>
             <div className="quick-actions">
               <Link to="/scan" className="quick-action-card">
                 <strong>QR-коды</strong>
-                <span>Сканировать награды</span>
+                <span>Камерой телефона → по ссылке</span>
               </Link>
               <Link to="/secrets" className="quick-action-card">
-                <strong>Секреты</strong>
+                <strong>Промокод</strong>
                 <span>Активировать код</span>
               </Link>
               <Link to="/trades" className="quick-action-card">
@@ -148,14 +132,6 @@ export function DashboardPage() {
             </Link>
           </article>
 
-          <article className="card">
-            <h2>Очки</h2>
-            <p className="dashboard-stat">{totalScore} очков</p>
-            <Link to="/score" className="card-link">
-              Рейтинг →
-            </Link>
-          </article>
-
           <article className="card card--wide">
             <h2>Активные квесты</h2>
             {activeQuests.length === 0 ? (
@@ -172,30 +148,6 @@ export function DashboardPage() {
             )}
             <Link to="/quests" className="card-link">
               Все квесты →
-            </Link>
-          </article>
-
-          <article className="card card--wide">
-            <h2>Победа</h2>
-            {victory.length === 0 ? (
-              <p className="empty-state">Условия победы не настроены.</p>
-            ) : (
-              <ul className="simple-list">
-                {victory.slice(0, 3).map((condition) => (
-                  <li key={condition.id}>
-                    <strong>{condition.description}</strong>
-                    <span>{condition.achieved ? 'Выполнено' : 'В процессе'}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {achievedVictory.length > 0 && (
-              <p className="status-ok">
-                Выполнено условий: {achievedVictory.length}
-              </p>
-            )}
-            <Link to="/victory" className="card-link">
-              Условия победы →
             </Link>
           </article>
         </div>

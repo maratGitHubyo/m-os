@@ -40,6 +40,14 @@ const ERROR_MESSAGES: Record<string, string> = {
   'Item belongs to a different game session': 'Предмет из другой игровой сессии',
   'You do not own this item': 'Этот предмет вам не принадлежит',
   'Leaderboard is disabled for this game session': 'Рейтинг отключён для этой сессии',
+  'Transfers and trades are disabled while the auction is active':
+    'Переводы и обмены отключены на время аукциона',
+  'Auction is not open yet': 'Аукцион ещё не открыт',
+  'Auction lot not found': 'Лот аукциона не найден',
+  'Auction lot is not in a valid state for this operation':
+    'Лот в недопустимом статусе для этой операции',
+  'Bid amount is too low': 'Ставка слишком низкая',
+  'Cannot sell a lot with no bids': 'Нельзя продать лот без ставок',
 };
 
 export function translateError(message: string): string {
@@ -104,6 +112,13 @@ export const tradeStatus: Record<string, string> = {
   ACCEPTED: 'Принят',
   DECLINED: 'Отклонён',
   CANCELLED: 'Отменён',
+};
+
+export const auctionLotStatus: Record<string, string> = {
+  DRAFT: 'Черновик',
+  OPEN: 'Торги',
+  SOLD: 'Продан',
+  CANCELLED: 'Снят',
 };
 
 export const roleLabel: Record<string, string> = {

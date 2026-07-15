@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { fetchCurrentSession } from '../api/locations';
 import { EventNotifications } from './EventNotifications';
 import { logout, useAuth } from '../stores/authStore';
 
-const navItems = [
+const baseNavItems = [
   { to: '/', label: 'Главная', end: true },
   { to: '/map', label: 'Карта' },
   { to: '/scan', label: 'QR' },
@@ -17,6 +19,38 @@ const navItems = [
 export function AppLayout() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [auctionEnabled, setAuctionEnabled] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const session = await fetchCurrentSession();
+        if (!cancelled) {
+          setAuctionEnabled(Boolean(session.config?.auctionModeEnabled));
+        }
+      } catch {
+        if (!cancelled) {
+          setAuctionEnabled(false);
+        }
+      }
+    };
+
+    void load();
+    const interval = window.setInterval(() => {
+      void load();
+    }, 15000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const navItems = auctionEnabled
+    ? [...baseNavItems, { to: '/auction', label: 'Аукцион' }]
+    : baseNavItems;
 
   const handleLogout = () => {
     logout();

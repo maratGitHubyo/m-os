@@ -1,5 +1,6 @@
 package com.mos.trade.service;
 
+import com.mos.auction.service.AuctionModeService;
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
 import com.mos.common.exception.InsufficientBalanceException;
@@ -49,9 +50,12 @@ public class TradeService {
     private final ItemService itemService;
     private final WalletService walletService;
     private final AuditService auditService;
+    private final AuctionModeService auctionModeService;
 
     @Transactional
     public TradeResponse createTrade(UUID initiatorId, UUID gameSessionId, CreateTradeRequest request) {
+        auctionModeService.ensureDisabled(gameSessionId);
+
         UUID receiverId = request.receiverId();
 
         if (initiatorId.equals(receiverId)) {
@@ -108,6 +112,8 @@ public class TradeService {
 
     @Transactional
     public TradeResponse acceptTrade(UUID tradeId, UUID receiverId, UUID gameSessionId) {
+        auctionModeService.ensureDisabled(gameSessionId);
+
         Trade trade = getTradeForParticipant(tradeId, receiverId, gameSessionId);
 
         if (!trade.getReceiverId().equals(receiverId)) {

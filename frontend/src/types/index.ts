@@ -28,6 +28,7 @@ export interface GameConfig {
   fogOfWarEnabled: boolean;
   secretsEnabled: boolean;
   leaderboardEnabled: boolean;
+  auctionModeEnabled: boolean;
 }
 
 export interface GameSessionInfo extends Session {
@@ -282,5 +283,64 @@ export interface GameEventBroadcast {
   gameSessionId: string;
   status: GameEventStatus;
   title: string;
+  changedAt: string;
+}
+
+export type AuctionLotStatus = 'DRAFT' | 'OPEN' | 'SOLD' | 'CANCELLED';
+
+export interface AuctionBid {
+  id: string;
+  lotId: string;
+  bidderUserId: string;
+  bidderNickname: string | null;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AuctionLot {
+  id: string;
+  title: string;
+  startingPrice: number;
+  minBidIncrement: number;
+  status: AuctionLotStatus;
+  currentPrice: number | null;
+  currentLeaderId: string | null;
+  currentLeaderNickname: string | null;
+  winnerUserId: string | null;
+  winnerNickname: string | null;
+  finalPrice: number | null;
+  nextMinBid: number | null;
+  createdAt: string;
+  openedAt: string | null;
+  closedAt: string | null;
+  recentBids: AuctionBid[];
+}
+
+export interface AuctionState {
+  auctionModeEnabled: boolean;
+  openLot: AuctionLot | null;
+  lots: AuctionLot[];
+}
+
+export interface CreateAuctionLotRequest {
+  title: string;
+  startingPrice?: number;
+  minBidIncrement?: number;
+}
+
+export interface AuctionBroadcast {
+  type: string;
+  gameSessionId: string;
+  lotId: string | null;
+  lotTitle: string | null;
+  status: AuctionLotStatus | null;
+  currentPrice: number | null;
+  currentLeaderId: string | null;
+  currentLeaderNickname: string | null;
+  nextMinBid: number | null;
+  bidAmount: number | null;
+  bidderUserId: string | null;
+  bidderNickname: string | null;
+  auctionModeEnabled: boolean;
   changedAt: string;
 }

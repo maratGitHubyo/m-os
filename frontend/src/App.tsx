@@ -6,6 +6,7 @@ import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AuditPage } from './pages/admin/AuditPage';
+import { AdminAuctionPage } from './pages/admin/AuctionPage';
 import { AdminEventsPage } from './pages/admin/EventsPage';
 import { ItemsPage } from './pages/admin/ItemsPage';
 import { LocationsPage } from './pages/admin/LocationsPage';
@@ -16,6 +17,7 @@ import { QuestsPage } from './pages/admin/QuestsPage';
 import { SecretsPage } from './pages/admin/SecretsPage';
 import { SessionPage } from './pages/admin/SessionPage';
 import { AdminWalletPage } from './pages/admin/WalletPage';
+import { AuctionPage } from './pages/AuctionPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { EventsPage } from './pages/EventsPage';
 import { InventoryPage } from './pages/InventoryPage';
@@ -56,6 +58,7 @@ export function App() {
             <Route path="/trades" element={<TradesPage />} />
             <Route path="/quests" element={<QuestPage />} />
             <Route path="/events" element={<EventsPage />} />
+            <Route path="/auction" element={<AuctionPage />} />
           </Route>
 
           <Route element={<AdminRoute />}>
@@ -71,6 +74,7 @@ export function App() {
               <Route path="numbers" element={<NumbersPage />} />
               <Route path="quests" element={<QuestsPage />} />
               <Route path="events" element={<AdminEventsPage />} />
+              <Route path="auction" element={<AdminAuctionPage />} />
               <Route path="audit" element={<AuditPage />} />
             </Route>
           </Route>

@@ -12,6 +12,7 @@ const adminNavItems = [
   { to: '/admin/numbers', label: 'Числа' },
   { to: '/admin/quests', label: 'Квесты' },
   { to: '/admin/events', label: 'События' },
+  { to: '/admin/auction', label: 'Аукцион' },
   { to: '/admin/audit', label: 'Аудит' },
 ];
 

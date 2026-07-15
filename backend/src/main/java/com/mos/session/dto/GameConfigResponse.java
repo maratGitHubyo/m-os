@@ -13,6 +13,7 @@ public record GameConfigResponse(
         Boolean fogOfWarEnabled,
         Boolean secretsEnabled,
         Boolean leaderboardEnabled,
+        Boolean auctionModeEnabled,
         Map<String, Object> customSettings
 ) {
 
@@ -25,6 +26,7 @@ public record GameConfigResponse(
                 config.getFogOfWarEnabled(),
                 config.getSecretsEnabled(),
                 config.getLeaderboardEnabled(),
+                config.getAuctionModeEnabled(),
                 config.getCustomSettings()
         );
     }

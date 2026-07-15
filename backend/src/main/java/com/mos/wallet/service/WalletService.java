@@ -1,5 +1,6 @@
 package com.mos.wallet.service;
 
+import com.mos.auction.service.AuctionModeService;
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
 import com.mos.common.exception.BusinessException;
@@ -45,6 +46,7 @@ public class WalletService {
     private final CoinTransferRepository coinTransferRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
     private final GameConfigRepository gameConfigRepository;
+    private final AuctionModeService auctionModeService;
 
     @Transactional(readOnly = true)
     public WalletResponse getWallet(UUID userId, UUID gameSessionId) {
@@ -175,6 +177,7 @@ public class WalletService {
             throw new CoinTransferSelfException();
         }
 
+        auctionModeService.ensureDisabled(gameSessionId);
         validateAmount(amount);
 
         SessionParticipant sender = sessionParticipantRepository

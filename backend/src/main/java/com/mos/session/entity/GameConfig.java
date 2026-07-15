@@ -62,6 +62,10 @@ public class GameConfig {
     @Builder.Default
     private Boolean leaderboardEnabled = true;
 
+    @Column(name = "auction_mode_enabled", nullable = false)
+    @Builder.Default
+    private Boolean auctionModeEnabled = false;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "custom_settings", nullable = false, columnDefinition = "jsonb")
     @Builder.Default

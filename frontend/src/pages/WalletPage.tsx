@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { fetchCurrentSession } from '../api/locations';
 import { fetchSessionPlayers } from '../api/players';
 import { fetchMyTransactions, fetchMyWallet, fetchTransfers, transferCoins } from '../api/wallet';
 import { PageState } from '../components/ui/PageState';
@@ -26,23 +27,26 @@ export function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [auctionFrozen, setAuctionFrozen] = useState(false);
 
   const loadWalletData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const [walletData, txPage, transferPage, sessionPlayers] = await Promise.all([
+      const [walletData, txPage, transferPage, sessionPlayers, session] = await Promise.all([
         fetchMyWallet(),
         fetchMyTransactions(),
         fetchTransfers(),
         fetchSessionPlayers(),
+        fetchCurrentSession(),
       ]);
 
       setWallet(walletData);
       setTransactions(txPage.content);
       setTransfers(transferPage.content);
       setPlayers(sessionPlayers.filter((player) => player.id !== user?.id));
+      setAuctionFrozen(Boolean(session.config?.auctionModeEnabled));
     } catch (err) {
       setError(
         err instanceof Error ? translateError(err.message) : 'Не удалось загрузить кошелёк',
@@ -101,36 +105,40 @@ export function WalletPage() {
 
           <article className="card wallet-transfer">
             <h2>Перевод M-coins</h2>
-            <form className="wallet-transfer__form" onSubmit={handleTransfer}>
-              <label className="form-field">
-                <span>Игрок</span>
-                <select
-                  value={receiverUserId}
-                  onChange={(event) => setReceiverUserId(event.target.value)}
-                  required
-                >
-                  <option value="">Выберите игрока</option>
-                  {players.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.nickname}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="form-field">
-                <span>Сумма</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-                  required
-                />
-              </label>
-              <button type="submit" className="btn btn--primary" disabled={submitting}>
-                {submitting ? 'Отправка…' : 'Отправить'}
-              </button>
-            </form>
+            {auctionFrozen ? (
+              <p className="muted">Переводы заморожены на время аукциона.</p>
+            ) : (
+              <form className="wallet-transfer__form" onSubmit={handleTransfer}>
+                <label className="form-field">
+                  <span>Игрок</span>
+                  <select
+                    value={receiverUserId}
+                    onChange={(event) => setReceiverUserId(event.target.value)}
+                    required
+                  >
+                    <option value="">Выберите игрока</option>
+                    {players.map((player) => (
+                      <option key={player.id} value={player.id}>
+                        {player.nickname}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="form-field">
+                  <span>Сумма</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                    required
+                  />
+                </label>
+                <button type="submit" className="btn btn--primary" disabled={submitting}>
+                  {submitting ? 'Отправка…' : 'Отправить'}
+                </button>
+              </form>
+            )}
           </article>
 
           <h2 className="section-title">Переводы</h2>

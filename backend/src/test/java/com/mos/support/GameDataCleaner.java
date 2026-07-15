@@ -1,5 +1,7 @@
 package com.mos.support;
 
+import com.mos.auction.repository.AuctionBidRepository;
+import com.mos.auction.repository.AuctionLotRepository;
 import com.mos.common.audit.repository.AuditLogRepository;
 import com.mos.event.repository.GameEventRepository;
 import com.mos.item.repository.ItemOwnershipHistoryRepository;
@@ -40,6 +42,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GameDataCleaner {
 
+    private final AuctionBidRepository auctionBidRepository;
+    private final AuctionLotRepository auctionLotRepository;
     private final TradeItemRepository tradeItemRepository;
     private final TradeCoinRepository tradeCoinRepository;
     private final TradeRepository tradeRepository;
@@ -69,6 +73,8 @@ public class GameDataCleaner {
 
     @Transactional
     public void clean() {
+        auctionBidRepository.deleteAllInBatch();
+        auctionLotRepository.deleteAllInBatch();
         tradeItemRepository.deleteAllInBatch();
         tradeCoinRepository.deleteAllInBatch();
         tradeRepository.deleteAllInBatch();
@@ -111,6 +117,7 @@ public class GameDataCleaner {
         });
         gameConfigRepository.findByGameSessionId(SESSION_ID).ifPresent(config -> {
             config.setNumbersTotal(50);
+            config.setAuctionModeEnabled(false);
             gameConfigRepository.save(config);
         });
     }

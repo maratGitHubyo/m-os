@@ -46,7 +46,8 @@ public class SecurityConfig {
                                 "/api/players/**", "/api/inventory/**", "/api/locations/**", "/api/qr/**",
                                 "/api/secrets/**",
                                 "/api/events/**",
-                                "/api/numbers/**", "/api/quests/**", "/api/trades/**").authenticated()
+                                "/api/numbers/**", "/api/quests/**", "/api/trades/**",
+                                "/api/auction/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(ex -> ex

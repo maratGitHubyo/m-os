@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public record CreateQrCodeRequest(
         @NotBlank String code,
+        String title,
         UUID locationPointId,
         @NotNull QrRewardType rewardType,
         Map<String, Object> rewardPayload,

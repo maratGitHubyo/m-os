@@ -83,7 +83,7 @@ class CoinTransferIntegrationTest {
         addParticipant(sender, ParticipantRole.PLAYER);
         addParticipant(receiver, ParticipantRole.PLAYER);
 
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
         senderToken = login(sender.getUsername(), "player123");
         receiverToken = login(receiver.getUsername(), "player123");
 

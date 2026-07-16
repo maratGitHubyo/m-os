@@ -1,4 +1,5 @@
 -- Dev seed reference copy for manual use
--- Applied automatically via Flyway V3__dev_seed.sql
+-- Applied automatically via Flyway V3 + V25 (marat host admin)
 
--- admin / admin123 (BCrypt hash only in database)
+-- marat / Kv7nR2xP (BCrypt hash only in database)
+-- Fixed user id: 10000000-0000-0000-0000-000000000001

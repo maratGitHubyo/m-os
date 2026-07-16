@@ -69,7 +69,7 @@ class GameEventIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
     }
 
     @Test

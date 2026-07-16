@@ -28,3 +28,7 @@ frontend/.env.local
 
 # Database volumes (local)
 pgdata/
+
+# Source photo dumps (canonical copies live in static/items)
+backend/src/main/resources/CYBER25_Photo/
+

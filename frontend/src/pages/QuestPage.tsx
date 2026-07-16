@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { completeQuest, fetchMyQuests, fetchQuests, startQuest } from '../api/quests';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
+import { Progress } from '../components/ui/Progress';
 import { formatEnum, questStatus, translateError } from '../i18n/ru';
 import { showToast } from '../stores/toastStore';
 import type { Quest, QuestProgress } from '../types';
@@ -97,17 +101,16 @@ export function QuestPage() {
 
   return (
     <section className="quest-page">
-      <h1>Квесты</h1>
-      <p className="page-hint">
-        Социальные задания на честном слове: возьмите квест, сделайте его в жизни и нажмите
-        «Готово».
-      </p>
+      <PageHeader
+        title="Миссии"
+        hint="Социальные задания на честном слове: возьмите квест, сделайте в жизни и отметьте «Готово»."
+      />
 
-      <PageState loading={loading} error={error} loadingLabel="Загрузка квестов…">
+      <PageState loading={loading} error={error} loadingLabel="Загрузка квестов…" skeletonCount={3}>
         <>
           <h2 className="section-title">Доступные</h2>
           {available.length === 0 ? (
-            <p className="empty-state">Сейчас нет доступных квестов.</p>
+            <p className="empty-state">Сейчас нет доступных миссий.</p>
           ) : (
             <ul className="quest-list">
               {available.map((quest) => (
@@ -117,17 +120,23 @@ export function QuestPage() {
                     <span className="quest-card__type">{policyLabel(quest)}</span>
                   </div>
                   <p>{quest.description}</p>
+                  {quest.completionPolicy === 'LIMITED' && (quest.completionLimit ?? 0) > 0 && (
+                    <Progress
+                      className="quest-card__progress"
+                      label="Места"
+                      value={quest.completedCount ?? 0}
+                      max={quest.completionLimit ?? 1}
+                    />
+                  )}
                   {rewardLabel(quest) && (
                     <p className="quest-card__reward">{rewardLabel(quest)}</p>
                   )}
-                  <button
-                    type="button"
-                    className="btn btn--primary"
+                  <Button
                     disabled={busyId === quest.id}
                     onClick={() => void handleStart(quest.id)}
                   >
-                    {busyId === quest.id ? 'Берём…' : 'Взять квест'}
-                  </button>
+                    {busyId === quest.id ? 'Берём…' : 'Взять миссию'}
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -135,14 +144,14 @@ export function QuestPage() {
 
           <h2 className="section-title">В работе</h2>
           {activeQuests.length === 0 ? (
-            <p className="empty-state">Нет активных квестов. Возьмите задание выше.</p>
+            <p className="empty-state">Нет активных миссий. Возьмите задание выше.</p>
           ) : (
             <ul className="quest-list">
               {activeQuests.map((playerQuest) => (
                 <li key={playerQuest.id} className="quest-card quest-card--active">
                   <div className="quest-card__header">
                     <h3>{playerQuest.quest.title}</h3>
-                    <span className="badge badge--active">В работе</span>
+                    <Badge tone="active">В работе</Badge>
                   </div>
                   <p>{playerQuest.quest.description}</p>
                   {rewardLabel(playerQuest.quest) && (
@@ -162,14 +171,12 @@ export function QuestPage() {
                       placeholder="Коротко: тост, подарок, сюрприз…"
                     />
                   </label>
-                  <button
-                    type="button"
-                    className="btn btn--primary"
+                  <Button
                     disabled={busyId === playerQuest.questId}
                     onClick={() => void handleComplete(playerQuest.questId)}
                   >
                     {busyId === playerQuest.questId ? 'Отправляем…' : 'Готово'}
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -183,9 +190,7 @@ export function QuestPage() {
                   <li key={quest.id} className="quest-card quest-card--completed">
                     <div className="quest-card__header">
                       <h3>{quest.quest.title}</h3>
-                      <span className="badge badge--completed">
-                        {formatEnum(quest.status, questStatus)}
-                      </span>
+                      <Badge tone="completed">{formatEnum(quest.status, questStatus)}</Badge>
                     </div>
                     {quest.completionNote && (
                       <p className="quest-card__note">«{quest.completionNote}»</p>
@@ -204,7 +209,7 @@ export function QuestPage() {
                   <li key={quest.id} className="quest-card">
                     <div className="quest-card__header">
                       <h3>{quest.quest.title}</h3>
-                      <span className="badge">{formatEnum(quest.status, questStatus)}</span>
+                      <Badge>{formatEnum(quest.status, questStatus)}</Badge>
                     </div>
                     <p className="page-hint">
                       Мест больше нет или организатор закрыл незавершённые квесты.

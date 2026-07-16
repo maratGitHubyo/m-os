@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -64,7 +65,7 @@ public class QrCodeService {
                 .gameSessionId(gameSessionId)
                 .locationPoint(locationPoint)
                 .code(request.code())
-                .title(request.code())
+                .title(request.title() != null && !request.title().isBlank() ? request.title() : request.code())
                 .rewardType(request.rewardType())
                 .rewardPayload(request.rewardPayload() != null ? new HashMap<>(request.rewardPayload()) : new HashMap<>())
                 .scanPolicy(request.scanPolicy())
@@ -116,6 +117,13 @@ public class QrCodeService {
         validateRewardConfiguration(qrCode);
 
         return QrCodeResponse.from(qrCode);
+    }
+
+    @Transactional(readOnly = true)
+    public List<QrCodeResponse> listQrCodes(UUID gameSessionId) {
+        return qrCodeRepository.findByGameSessionIdOrderByCreatedAtAsc(gameSessionId).stream()
+                .map(QrCodeResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

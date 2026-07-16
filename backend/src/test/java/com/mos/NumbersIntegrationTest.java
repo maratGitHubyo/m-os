@@ -48,7 +48,7 @@ class NumbersIntegrationTest {
         auditLogRepository.deleteAll();
         playerNumberRepository.deleteAll();
         collectibleNumberRepository.deleteAll();
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
     }
 
     private int uniqueNumberValue() {

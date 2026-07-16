@@ -1,5 +1,5 @@
-import { LoadingSpinner } from './LoadingSpinner';
 import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 
 interface PageStateProps {
   loading?: boolean;
@@ -7,6 +7,9 @@ interface PageStateProps {
   error?: string | null;
   empty?: boolean;
   emptyMessage?: string;
+  emptyTitle?: string;
+  skeleton?: 'list' | 'card' | 'stat';
+  skeletonCount?: number;
   children: React.ReactNode;
 }
 
@@ -16,22 +19,30 @@ export function PageState({
   error,
   empty,
   emptyMessage,
+  emptyTitle,
+  skeleton = 'list',
+  skeletonCount = 3,
   children,
 }: PageStateProps) {
   if (loading) {
-    return <LoadingSpinner label={loadingLabel} />;
+    return (
+      <div className="page-state-loading" role="status" aria-live="polite" aria-label={loadingLabel ?? 'Загрузка'}>
+        <span className="visually-hidden">{loadingLabel ?? 'Загрузка'}</span>
+        <Skeleton variant={skeleton} count={skeletonCount} />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="status-error-panel">
+      <div className="status-error-panel" role="alert">
         <p className="status-error">{error}</p>
       </div>
     );
   }
 
   if (empty) {
-    return <EmptyState message={emptyMessage} />;
+    return <EmptyState title={emptyTitle} message={emptyMessage} />;
   }
 
   return <>{children}</>;

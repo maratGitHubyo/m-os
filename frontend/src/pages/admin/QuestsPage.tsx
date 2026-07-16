@@ -229,7 +229,7 @@ export function QuestsPage() {
             />
           </label>
 
-          <fieldset className="form-field form-field--wide">
+          <fieldset className="form-field form-field--wide radio-group">
             <legend>Кому задание</legend>
             <label className="radio-option">
               <input
@@ -272,7 +272,7 @@ export function QuestsPage() {
 
           {audience === 'ALL' && (
             <>
-              <fieldset className="form-field form-field--wide">
+              <fieldset className="form-field form-field--wide radio-group">
                 <legend>Кто может выполнить</legend>
                 <label className="radio-option">
                   <input
@@ -309,7 +309,7 @@ export function QuestsPage() {
             </>
           )}
 
-          <fieldset className="form-field form-field--wide">
+          <fieldset className="form-field form-field--wide radio-group">
             <legend>Награда</legend>
             <label className="radio-option">
               <input

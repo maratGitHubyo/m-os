@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchEvents } from '../api/events';
+import { Badge } from '../components/ui/Badge';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
 import { eventStatus, formatEnum, gameEventType, translateError } from '../i18n/ru';
 import type { GameEvent } from '../types';
@@ -42,16 +44,17 @@ export function EventsPage() {
 
   return (
     <section className="events-page">
-      <h1>События</h1>
-      <p className="page-hint">
-        Запланированные и активные игровые события. Обновления приходят в уведомлениях.
-      </p>
+      <PageHeader
+        title="События"
+        hint="Лента игровых событий. Живые обновления приходят в уведомлениях."
+      />
 
       <PageState
         loading={loading}
         error={error}
         loadingLabel="Загрузка событий…"
         empty={events.length === 0}
+        emptyTitle="Тишина на канале"
         emptyMessage="Нет запланированных событий."
       >
         <ul className="event-list">
@@ -59,9 +62,9 @@ export function EventsPage() {
             <li key={event.id} className="event-card">
               <div className="event-card__header">
                 <h2>{event.title}</h2>
-                <span className={`badge badge--${event.status.toLowerCase()}`}>
+                <Badge tone={event.status.toLowerCase()}>
                   {formatEnum(event.status, eventStatus)}
-                </span>
+                </Badge>
               </div>
               <p className="event-card__type">{formatEnum(event.type, gameEventType)}</p>
               {event.description && <p>{event.description}</p>}

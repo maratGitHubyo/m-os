@@ -16,6 +16,7 @@ import com.mos.qrcode.repository.QrScanRepository;
 import com.mos.quest.repository.PlayerQuestRepository;
 import com.mos.quest.repository.QuestRepository;
 import com.mos.secret.repository.PlayerSecretRepository;
+import com.mos.seed.DemoSeedConstants;
 import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.GameSessionRepository;
@@ -31,12 +32,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Clears mutable game data before integration tests.
- * Preserves V3 seed users, session, and admin participant.
+ * Preserves V3/V25 host user (marat) and session baseline.
  */
 @Component
 @RequiredArgsConstructor
@@ -100,7 +102,13 @@ public class GameDataCleaner {
     }
 
     private void removeDemoUsers() {
-        for (String username : List.of("alice", "bob")) {
+        List<String> usernames = new ArrayList<>();
+        DemoSeedConstants.PARTY_PLAYERS.forEach(account -> usernames.add(account.username()));
+        usernames.add("alice");
+        usernames.add("bob");
+        usernames.add("admin");
+
+        for (String username : usernames) {
             userRepository.findByUsername(username).ifPresent(user -> {
                 sessionParticipantRepository.findByUserId(user.getId())
                         .forEach(sessionParticipantRepository::delete);

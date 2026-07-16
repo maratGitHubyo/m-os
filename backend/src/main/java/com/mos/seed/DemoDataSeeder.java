@@ -1,24 +1,15 @@
 package com.mos.seed;
 
 import com.mos.item.dto.CreateItemTemplateRequest;
-import com.mos.item.enums.ItemRarity;
+import com.mos.item.repository.ItemTemplateRepository;
 import com.mos.item.service.ItemService;
-import com.mos.location.dto.CreateLocationRequest;
-import com.mos.location.service.LocationService;
-import com.mos.numbers.dto.CreateCollectibleNumberRequest;
-import com.mos.numbers.service.NumberService;
+import com.mos.location.repository.LocationPointRepository;
 import com.mos.qrcode.dto.CreateQrCodeRequest;
 import com.mos.qrcode.enums.QrRewardType;
 import com.mos.qrcode.enums.QrScanPolicy;
+import com.mos.qrcode.repository.QrCodeRepository;
 import com.mos.qrcode.service.QrCodeService;
-import com.mos.quest.dto.CreateQuestRequest;
-import com.mos.quest.enums.QuestCompletionPolicy;
-import com.mos.quest.enums.QuestDefinitionStatus;
-import com.mos.quest.enums.QuestType;
-import com.mos.quest.service.QuestService;
-import com.mos.secret.dto.CreatePlayerSecretRequest;
-import com.mos.secret.enums.SecretRewardType;
-import com.mos.secret.service.PlayerSecretService;
+import com.mos.quest.repository.QuestRepository;
 import com.mos.session.entity.GameSession;
 import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.entity.ParticipantRole;
@@ -28,6 +19,7 @@ import com.mos.session.repository.GameSessionRepository;
 import com.mos.session.repository.SessionParticipantRepository;
 import com.mos.user.entity.User;
 import com.mos.user.repository.UserRepository;
+import com.mos.wallet.repository.WalletRepository;
 import com.mos.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +29,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,142 +44,127 @@ public class DemoDataSeeder {
     private final GameSessionRepository gameSessionRepository;
     private final GameConfigRepository gameConfigRepository;
     private final SessionParticipantRepository sessionParticipantRepository;
+    private final LocationPointRepository locationPointRepository;
+    private final WalletRepository walletRepository;
+    private final ItemTemplateRepository itemTemplateRepository;
+    private final QrCodeRepository qrCodeRepository;
     private final PasswordEncoder passwordEncoder;
     private final WalletService walletService;
     private final ItemService itemService;
-    private final LocationService locationService;
     private final QrCodeService qrCodeService;
-    private final PlayerSecretService playerSecretService;
-    private final NumberService numberService;
-    private final QuestService questService;
+    private final QuestRepository questRepository;
 
     @Transactional
     public void seedDemoData() {
-        if (userRepository.existsByUsername("alice")) {
-            log.info("Demo data already seeded, skipping");
-            return;
+        log.info("Seeding M-OS party accounts, items and QR codes");
+
+        ensureDemoSessionExists();
+
+        User hostAdmin = ensureUser(DemoSeedConstants.HOST_ADMIN);
+        ensureParticipant(hostAdmin, ParticipantRole.ADMIN);
+        removeLegacyUsers();
+
+        List<User> players = new ArrayList<>();
+        for (DemoSeedConstants.SeedAccount account : DemoSeedConstants.PARTY_PLAYERS) {
+            User player = ensureUser(account);
+            ensureParticipant(player, ParticipantRole.PLAYER);
+            ensureStartingBalance(player, hostAdmin.getId());
+            players.add(player);
         }
-
-        log.info("Seeding M-OS demo data");
-
-        ensureSingleDemoSession();
-        User admin = userRepository.findByUsername("admin").orElseThrow();
-        User alice = createPlayer("alice", "Alice");
-        User bob = createPlayer("bob", "Bob");
-
-        ensureParticipant(admin, ParticipantRole.ADMIN);
-        ensureParticipant(alice, ParticipantRole.PLAYER);
-        ensureParticipant(bob, ParticipantRole.PLAYER);
 
         UUID sessionId = DemoSeedConstants.SESSION_ID;
-        UUID adminId = admin.getId();
+        removeDefaultDemoItems(sessionId);
+        removeDefaultDemoQuests(sessionId);
+        removeDefaultDemoLocations(sessionId);
+        removeLegacyDemoQr(sessionId);
 
-        walletService.adminCredit(alice.getId(), sessionId, 100L, "Demo starting balance", adminId);
-        walletService.adminCredit(bob.getId(), sessionId, 100L, "Demo starting balance", adminId);
+        prepareFreshDemoSession();
+        seedPartyItemsAndQr(sessionId);
 
-        UUID bronzeKeyId = createItemTemplate(sessionId, "Bronze Key", ItemRarity.COMMON);
-        UUID explorerBadgeId = createItemTemplate(sessionId, "Explorer Badge", ItemRarity.RARE);
-        UUID magicTokenId = createItemTemplate(sessionId, "Magic Token", ItemRarity.EPIC);
-
-        itemService.grantItem(alice.getId(), bronzeKeyId, sessionId, adminId);
-        itemService.grantItem(bob.getId(), explorerBadgeId, sessionId, adminId);
-
-        createLocation(sessionId, "Start Point", "Where the adventure begins", 10.0, 10.0, "village", false);
-        createLocation(sessionId, "Forest", "A dense forest path", 30.0, 25.0, "north", false);
-        createLocation(sessionId, "Tower", "An old stone tower", 55.0, 20.0, "east", false);
-        createLocation(sessionId, "Lake", "A calm lakeside", 40.0, 70.0, "south", false);
-        UUID hiddenCaveId = createLocation(sessionId, "Hidden Cave", "A secret cave entrance", 80.0, 80.0, "west", true);
-
-        createQrCode(sessionId, "QR-COIN", null, QrRewardType.COIN, Map.of("amount", 50), QrScanPolicy.EVERY_PLAYER, null);
-        createQrCode(sessionId, "QR-ITEM", null, QrRewardType.ITEM, Map.of("itemTemplateId", magicTokenId.toString()), QrScanPolicy.EVERY_PLAYER, null);
-        createQrCode(sessionId, "QR-LOCATION", hiddenCaveId, QrRewardType.NONE, Map.of(), QrScanPolicy.EVERY_PLAYER, null);
-
-        playerSecretService.createSecret(sessionId, new CreatePlayerSecretRequest(
-                alice.getId(),
-                "STAR-DEMO",
-                "Demo Star Secret",
-                "A secret reward for the demo",
-                SecretRewardType.COIN,
-                Map.of("amount", 25)
-        ));
-
-        for (int value = 1; value <= 5; value++) {
-            numberService.createNumber(sessionId, new CreateCollectibleNumberRequest(value));
-        }
-
-        questService.createQuest(sessionId, new CreateQuestRequest(
-                "Удивить именинника",
-                "Сделай что-то приятное и неожиданное для именинника. Честное слово.",
-                QuestType.SOCIAL,
-                Map.of(),
-                Map.of("type", "COIN", "amount", 40),
-                QuestDefinitionStatus.ACTIVE,
-                QuestCompletionPolicy.EVERY_PLAYER,
-                null,
-                null
-        ), adminId);
-
-        questService.createQuest(sessionId, new CreateQuestRequest(
-                "Кто первый скажет тост",
-                "Придумай и произнеси короткий тост. Награда — первому успевшему.",
-                QuestType.SOCIAL,
-                Map.of(),
-                Map.of("type", "COIN", "amount", 60),
-                QuestDefinitionStatus.ACTIVE,
-                QuestCompletionPolicy.LIMITED,
-                1,
-                null
-        ), adminId);
-
-        questService.createQuest(sessionId, new CreateQuestRequest(
-                "Подарить предмет имениннику",
-                "Передай имениннику любой предмет (в жизни или через обмен в M-OS).",
-                QuestType.SOCIAL,
-                Map.of(),
-                Map.of("type", "COIN", "amount", 30),
-                QuestDefinitionStatus.ACTIVE,
-                QuestCompletionPolicy.EVERY_PLAYER,
-                null,
-                null
-        ), adminId);
-
-        log.info("M-OS demo data seeded for session {}", sessionId);
+        log.info("M-OS seed complete: {} players, {} item templates",
+                players.size(),
+                itemTemplateRepository.countByGameSessionId(sessionId));
     }
 
-    private void ensureSingleDemoSession() {
-        GameSession session = gameSessionRepository.findById(DemoSeedConstants.SESSION_ID)
-                .orElseGet(() -> gameSessionRepository.save(GameSession.builder()
-                        .id(DemoSeedConstants.SESSION_ID)
-                        .name(DemoSeedConstants.DEMO_SESSION_NAME)
-                        .date(LocalDate.now())
-                        .status(GameSessionStatus.STARTING)
-                        .build()));
+    private void seedPartyItemsAndQr(UUID sessionId) {
+        for (PartyItemCatalog.SeedItem item : PartyItemCatalog.ITEMS) {
+            if (qrCodeRepository.existsByCodeAndGameSessionId(item.qrCode(), sessionId)) {
+                continue;
+            }
 
+            UUID templateId = itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
+                    .filter(template -> template.getName().equals(item.name()))
+                    .map(template -> template.getId())
+                    .findFirst()
+                    .orElseGet(() -> itemService.createTemplate(sessionId, new CreateItemTemplateRequest(
+                            item.name(),
+                            item.description(),
+                            item.imageUrl(),
+                            item.rarity(),
+                            true
+                    )).id());
+
+            qrCodeService.createQrCode(sessionId, new CreateQrCodeRequest(
+                    item.qrCode(),
+                    item.name(),
+                    null,
+                    QrRewardType.ITEM,
+                    Map.of("itemTemplateId", templateId.toString()),
+                    QrScanPolicy.FIRST_PLAYER,
+                    null
+            ));
+        }
+    }
+
+    private void ensureDemoSessionExists() {
+        if (gameSessionRepository.findById(DemoSeedConstants.SESSION_ID).isPresent()) {
+            return;
+        }
+        gameSessionRepository.save(GameSession.builder()
+                .id(DemoSeedConstants.SESSION_ID)
+                .name(DemoSeedConstants.DEMO_SESSION_NAME)
+                .date(LocalDate.now())
+                .status(GameSessionStatus.STARTING)
+                .mapImageUrl("/maps/dacha.png")
+                .build());
+    }
+
+    private void prepareFreshDemoSession() {
+        GameSession session = gameSessionRepository.findById(DemoSeedConstants.SESSION_ID).orElseThrow();
         session.setName(DemoSeedConstants.DEMO_SESSION_NAME);
-        session.setStatus(GameSessionStatus.STARTING);
-        session.setMapImageUrl("/maps/dacha.png");
+        if (session.getMapImageUrl() == null || session.getMapImageUrl().isBlank()) {
+            session.setMapImageUrl("/maps/dacha.png");
+        }
         gameSessionRepository.save(session);
 
-        gameSessionRepository.findByStatusIn(List.of(GameSessionStatus.ACTIVE, GameSessionStatus.STARTING)).stream()
-                .filter(other -> !other.getId().equals(DemoSeedConstants.SESSION_ID))
-                .forEach(other -> {
-                    other.setStatus(GameSessionStatus.FINISHED);
-                    gameSessionRepository.save(other);
-                });
-
         gameConfigRepository.findByGameSessionId(DemoSeedConstants.SESSION_ID).ifPresent(config -> {
-            config.setNumbersTotal(5);
             config.setLeaderboardEnabled(true);
             gameConfigRepository.save(config);
         });
     }
 
-    private User createPlayer(String username, String nickname) {
-        return userRepository.save(User.builder()
-                .username(username)
-                .passwordHash(passwordEncoder.encode(DemoSeedConstants.DEMO_PLAYER_PASSWORD))
-                .nickname(nickname)
-                .build());
+    private void removeLegacyUsers() {
+        for (String username : List.of("admin", "alice", "bob")) {
+            userRepository.findByUsername(username).ifPresent(user -> {
+                sessionParticipantRepository.findByUserId(user.getId())
+                        .forEach(sessionParticipantRepository::delete);
+                userRepository.delete(user);
+            });
+        }
+    }
+
+    private User ensureUser(DemoSeedConstants.SeedAccount account) {
+        return userRepository.findByUsername(account.username())
+                .map(existing -> {
+                    existing.setPasswordHash(passwordEncoder.encode(account.password()));
+                    existing.setNickname(account.nickname());
+                    return userRepository.save(existing);
+                })
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .username(account.username())
+                        .passwordHash(passwordEncoder.encode(account.password()))
+                        .nickname(account.nickname())
+                        .build()));
     }
 
     private void ensureParticipant(User user, ParticipantRole role) {
@@ -203,51 +181,44 @@ public class DemoDataSeeder {
                 .build());
     }
 
-    private UUID createItemTemplate(UUID sessionId, String name, ItemRarity rarity) {
-        return itemService.createTemplate(sessionId, new CreateItemTemplateRequest(
-                name,
-                "Demo item: " + name,
-                null,
-                rarity,
-                false
-        )).id();
+    private void removeDefaultDemoItems(UUID sessionId) {
+        var demoNames = List.of("Bronze Key", "Explorer Badge", "Magic Token");
+        itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
+                .filter(template -> demoNames.contains(template.getName()))
+                .forEach(itemTemplateRepository::delete);
     }
 
-    private UUID createLocation(
-            UUID sessionId,
-            String name,
-            String description,
-            double x,
-            double y,
-            String zone,
-            boolean hidden
-    ) {
-        return locationService.createLocation(sessionId, new CreateLocationRequest(
-                name,
-                description,
-                x,
-                y,
-                zone,
-                hidden
-        )).id();
+    private void removeDefaultDemoQuests(UUID sessionId) {
+        var demoTitles = List.of(
+                "Удивить именинника",
+                "Кто первый скажет тост",
+                "Подарить предмет имениннику"
+        );
+        questRepository.findAll().stream()
+                .filter(quest -> sessionId.equals(quest.getGameSessionId()))
+                .filter(quest -> demoTitles.contains(quest.getTitle()))
+                .forEach(questRepository::delete);
     }
 
-    private void createQrCode(
-            UUID sessionId,
-            String code,
-            UUID locationPointId,
-            QrRewardType rewardType,
-            Map<String, Object> payload,
-            QrScanPolicy scanPolicy,
-            Integer scanLimit
-    ) {
-        qrCodeService.createQrCode(sessionId, new CreateQrCodeRequest(
-                code,
-                locationPointId,
-                rewardType,
-                payload,
-                scanPolicy,
-                scanLimit
-        ));
+    private void removeDefaultDemoLocations(UUID sessionId) {
+        var demoNames = List.of("Start Point", "Forest", "Tower", "Lake", "Hidden Cave");
+        locationPointRepository.findByGameSessionIdOrderByZoneAscNameAsc(sessionId).stream()
+                .filter(location -> demoNames.contains(location.getName()))
+                .forEach(locationPointRepository::delete);
+    }
+
+    private void removeLegacyDemoQr(UUID sessionId) {
+        for (String code : List.of("QR-COIN", "QR-ITEM", "QR-LOCATION")) {
+            qrCodeRepository.findByCodeAndGameSessionId(code, sessionId)
+                    .ifPresent(qrCodeRepository::delete);
+        }
+    }
+
+    private void ensureStartingBalance(User player, UUID adminId) {
+        UUID sessionId = DemoSeedConstants.SESSION_ID;
+        if (walletRepository.findByUserIdAndGameSessionId(player.getId(), sessionId).isPresent()) {
+            return;
+        }
+        walletService.adminCredit(player.getId(), sessionId, 100L, "Starting balance", adminId);
     }
 }

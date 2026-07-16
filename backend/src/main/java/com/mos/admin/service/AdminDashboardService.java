@@ -9,6 +9,7 @@ import com.mos.quest.enums.QuestDefinitionStatus;
 import com.mos.quest.repository.QuestRepository;
 import com.mos.session.dto.GameSessionResponse;
 import com.mos.session.entity.GameSession;
+import com.mos.session.entity.ParticipantRole;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.GameSessionRepository;
 import com.mos.session.repository.SessionParticipantRepository;
@@ -47,7 +48,7 @@ public class AdminDashboardService {
 
         return new AdminDashboardResponse(
                 GameSessionResponse.from(session),
-                sessionParticipantRepository.countByGameSessionId(gameSessionId),
+                sessionParticipantRepository.countByGameSessionIdAndRole(gameSessionId, ParticipantRole.PLAYER),
                 questRepository.countByGameSessionIdAndStatus(gameSessionId, QuestDefinitionStatus.ACTIVE),
                 locationPointRepository.countByGameSessionId(gameSessionId),
                 itemTemplateRepository.countByGameSessionId(gameSessionId),

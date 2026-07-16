@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createQrCodeSimple } from '../../api/admin/qr';
+import { createQrCodeSimple, downloadQrPrintDocx, listQrCodes } from '../../api/admin/qr';
 import { listItemTemplates } from '../../api/admin/items';
 import { downloadQrImage, openQrImage } from '../../api/qr';
 import { fetchLocations } from '../../api/locations';
@@ -13,35 +13,50 @@ import type { LocationPoint } from '../../types';
 
 export function QrCodesPage() {
   const [codes, setCodes] = useState<QrCodeInfo[]>([]);
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
   const [rewardKind, setRewardKind] = useState<QrRewardKind>('COIN');
   const [coinAmount, setCoinAmount] = useState('50');
   const [itemTemplateId, setItemTemplateId] = useState('');
   const [locationPointId, setLocationPointId] = useState('');
   const [scanPolicy, setScanPolicy] = useState<'FIRST_PLAYER' | 'EVERY_PLAYER' | 'LIMITED'>(
-    'EVERY_PLAYER',
+    'FIRST_PLAYER',
   );
   const [scanLimit, setScanLimit] = useState('');
   const [templates, setTemplates] = useState<ItemTemplate[]>([]);
   const [locations, setLocations] = useState<LocationPoint[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
   const [createdQr, setCreatedQr] = useState<QrCodeInfo | null>(null);
 
+  const reloadCodes = async () => {
+    const qrCodes = await listQrCodes();
+    setCodes(qrCodes);
+  };
+
   useEffect(() => {
-    const loadOptions = async () => {
+    const load = async () => {
+      setLoading(true);
       try {
-        const [itemTemplates, locationPoints] = await Promise.all([
+        const [itemTemplates, locationPoints, qrCodes] = await Promise.all([
           listItemTemplates(),
           fetchLocations(),
+          listQrCodes(),
         ]);
         setTemplates(itemTemplates);
         setLocations(locationPoints);
-      } catch {
-        // dropdowns stay empty if load fails
+        setCodes(qrCodes);
+      } catch (err) {
+        showToast(
+          err instanceof Error ? translateError(err.message) : 'Не удалось загрузить QR-коды',
+          'error',
+        );
+      } finally {
+        setLoading(false);
       }
     };
 
-    void loadOptions();
+    void load();
   }, []);
 
   const handleCreate = async (event: React.FormEvent) => {
@@ -59,8 +74,8 @@ export function QrCodesPage() {
         scanPolicy,
         scanLimit: scanPolicy === 'LIMITED' && scanLimit ? Number(scanLimit) : null,
       });
-      setCodes((current) => [...current, created]);
       setCreatedQr(created);
+      await reloadCodes();
       showToast(`QR «${created.title}» создан`);
       setTitle('');
     } catch (err) {
@@ -73,11 +88,33 @@ export function QrCodesPage() {
     }
   };
 
+  const handleDownloadDocx = async () => {
+    setDownloadingDocx(true);
+    try {
+      await downloadQrPrintDocx();
+      showToast('Word-файл со всеми QR скачан');
+    } catch {
+      showToast('Не удалось скачать Word', 'error');
+    } finally {
+      setDownloadingDocx(false);
+    }
+  };
+
   return (
     <section>
       <PageHeader
         title="QR-коды"
         description="Создайте QR с наградой и скачайте изображение для печати на мероприятии."
+        actions={
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={downloadingDocx || codes.length === 0}
+            onClick={() => void handleDownloadDocx()}
+          >
+            {downloadingDocx ? 'Готовим Word…' : 'Скачать все для печати'}
+          </button>
+        }
       />
 
       <FormCard title="Создать QR-код">
@@ -87,7 +124,7 @@ export function QrCodesPage() {
             <input value={title} onChange={(event) => setTitle(event.target.value)} required />
           </label>
 
-          <fieldset className="form-field form-field--wide">
+          <fieldset className="form-field form-field--wide radio-group">
             <legend>Тип награды</legend>
             <label className="radio-option">
               <input
@@ -189,8 +226,8 @@ export function QrCodesPage() {
               value={scanPolicy}
               onChange={(event) => setScanPolicy(event.target.value as typeof scanPolicy)}
             >
-              <option value="EVERY_PLAYER">Каждый игрок один раз</option>
               <option value="FIRST_PLAYER">Только первый игрок</option>
+              <option value="EVERY_PLAYER">Каждый игрок один раз</option>
               <option value="LIMITED">Лимит сканирований</option>
             </select>
           </label>
@@ -243,8 +280,10 @@ export function QrCodesPage() {
         </article>
       )}
 
-      <h2 className="section-title">QR-коды (сессия)</h2>
-      {codes.length === 0 ? (
+      <h2 className="section-title">QR-коды сессии ({codes.length})</h2>
+      {loading ? (
+        <p className="empty-state">Загрузка…</p>
+      ) : codes.length === 0 ? (
         <p className="empty-state">В этой сессии пока нет QR-кодов.</p>
       ) : (
         <DataTable

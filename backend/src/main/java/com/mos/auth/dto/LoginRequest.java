@@ -6,9 +6,9 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "Login credentials")
 public record LoginRequest(
-        @Schema(description = "Username", example = "admin")
+        @Schema(description = "Username", example = "marat")
         @NotBlank @Size(max = 64) String username,
-        @Schema(description = "Password", example = "admin123")
+        @Schema(description = "Password", example = "Kv7nR2xP")
         @NotBlank @Size(max = 128) String password
 ) {
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { ApiError } from '../api/client';
+import { Button } from '../components/ui/Button';
 import { translateError } from '../i18n/ru';
 import { login as saveAuth } from '../stores/authStore';
 
@@ -49,8 +50,12 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-card">
+        <p className="login-card__status">
+          <span className="login-card__status-dot" aria-hidden="true" />
+          signal online · expedition gate
+        </p>
         <h1>M-OS</h1>
-        <p className="login-card__subtitle">Войдите, чтобы присоединиться к игре</p>
+        <p className="login-card__subtitle">Войдите в терминал экспедиции</p>
 
         <form className="login-form" onSubmit={(event) => void handleSubmit(event)}>
           <label className="form-field">
@@ -75,14 +80,18 @@ export function LoginPage() {
             />
           </label>
 
-          {error && <p className="status-error">{error}</p>}
+          {error && (
+            <p className="status-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <button type="submit" className="btn btn--primary" disabled={loading}>
-            {loading ? 'Вход…' : 'Войти'}
-          </button>
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Подключение…' : 'Войти в игру'}
+          </Button>
         </form>
 
-        <p className="login-card__hint">Демо: alice/demo123 или admin/admin123</p>
+        <p className="login-card__hint">Логин и пароль выдаёт организатор</p>
       </div>
     </div>
   );

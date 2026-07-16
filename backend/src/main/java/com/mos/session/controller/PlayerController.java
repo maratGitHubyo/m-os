@@ -2,6 +2,7 @@ package com.mos.session.controller;
 
 import com.mos.security.SecurityUtils;
 import com.mos.session.dto.SessionPlayerResponse;
+import com.mos.session.entity.ParticipantRole;
 import com.mos.session.repository.SessionParticipantRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ public class PlayerController {
     @GetMapping
     public List<SessionPlayerResponse> listSessionPlayers() {
         var currentUser = SecurityUtils.getCurrentUser();
-        return sessionParticipantRepository.findByGameSessionId(currentUser.gameSessionId()).stream()
+        return sessionParticipantRepository
+                .findByGameSessionIdAndRole(currentUser.gameSessionId(), ParticipantRole.PLAYER)
+                .stream()
                 .map(participant -> new SessionPlayerResponse(
                         participant.getUser().getId(),
                         participant.getNicknameSnapshot()

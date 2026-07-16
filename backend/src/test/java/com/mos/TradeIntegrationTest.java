@@ -115,7 +115,7 @@ class TradeIntegrationTest {
                 .nicknameSnapshot(player.getNickname())
                 .build());
 
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
         playerToken = login(playerUsername, "player123");
     }
 

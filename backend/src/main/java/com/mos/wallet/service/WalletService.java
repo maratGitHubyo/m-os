@@ -9,6 +9,7 @@ import com.mos.common.exception.CoinTransferUserNotInSessionException;
 import com.mos.common.exception.ConcurrentModificationException;
 import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.InvalidAmountException;
+import com.mos.session.entity.ParticipantRole;
 import com.mos.session.entity.SessionParticipant;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.SessionParticipantRepository;
@@ -65,7 +66,9 @@ public class WalletService {
         Map<UUID, Long> balances = walletRepository.findByGameSessionId(gameSessionId).stream()
                 .collect(Collectors.toMap(Wallet::getUserId, Wallet::getBalance));
 
-        List<LeaderboardEntryResponse> sorted = sessionParticipantRepository.findByGameSessionId(gameSessionId).stream()
+        List<LeaderboardEntryResponse> sorted = sessionParticipantRepository
+                .findByGameSessionIdAndRole(gameSessionId, ParticipantRole.PLAYER)
+                .stream()
                 .map(participant -> new LeaderboardEntryResponse(
                         0,
                         participant.getUser().getId(),
@@ -77,15 +80,9 @@ public class WalletService {
                 .toList();
 
         List<LeaderboardEntryResponse> ranked = new ArrayList<>();
-        int rank = 0;
-        long previousBalance = -1;
         for (int i = 0; i < sorted.size(); i++) {
             LeaderboardEntryResponse entry = sorted.get(i);
-            if (i == 0 || !entry.balance().equals(previousBalance)) {
-                rank = i + 1;
-            }
-            previousBalance = entry.balance();
-            ranked.add(new LeaderboardEntryResponse(rank, entry.userId(), entry.nickname(), entry.balance()));
+            ranked.add(new LeaderboardEntryResponse(i + 1, entry.userId(), entry.nickname(), entry.balance()));
         }
         return ranked;
     }

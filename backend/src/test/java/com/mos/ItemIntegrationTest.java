@@ -264,7 +264,7 @@ class ItemIntegrationTest {
     }
 
     private String loginAsAdmin() throws Exception {
-        return loginAs("admin123", "admin");
+        return loginAs("Kv7nR2xP", "marat");
     }
 
     private String loginAs(String password, String username) throws Exception {

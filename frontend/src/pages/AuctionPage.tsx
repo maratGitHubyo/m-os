@@ -4,6 +4,9 @@ import SockJS from 'sockjs-client';
 import { API_URL } from '../api/client';
 import { fetchAuctionState, placeBid } from '../api/auction';
 import { fetchMyWallet } from '../api/wallet';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
 import { auctionLotStatus, formatEnum, translateError } from '../i18n/ru';
 import { getToken, subscribe, useAuth } from '../stores/authStore';
@@ -136,19 +139,23 @@ export function AuctionPage() {
   };
 
   return (
-    <section className="page">
-      <h1>Аукцион</h1>
-      <p className="page-lead">Ставки списываются только после «Продано». Переводы на время аукциона закрыты.</p>
+    <section className="auction-page">
+      <PageHeader
+        title="Аукцион"
+        hint="Ставки списываются только после «Продано». Переводы на время аукциона закрыты."
+      />
 
-      <PageState loading={loading} error={error} empty={false}>
+      <PageState loading={loading} error={error} empty={false} skeleton="stat">
         {wallet && (
-          <p className="muted">
-            Баланс: <strong>{wallet.balance}</strong> М-коинов
-          </p>
+          <Card className="wallet-balance">
+            <p className="stat-card__label">Ваш баланс</p>
+            <p className="dashboard-stat">{wallet.balance}</p>
+            <p className="page-hint">M-Coins</p>
+          </Card>
         )}
 
         {openLot ? (
-          <article className="card">
+          <Card>
             <h2>{openLot.title}</h2>
             <dl className="data-list">
               <div>
@@ -174,15 +181,13 @@ export function AuctionPage() {
 
             <div className="admin-actions">
               {quickAmounts(openLot).map((amount) => (
-                <button
+                <Button
                   key={amount}
-                  type="button"
-                  className="btn btn--primary"
                   disabled={submitting || (wallet != null && wallet.balance < amount)}
                   onClick={() => void bid(amount)}
                 >
                   {amount}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -196,9 +201,9 @@ export function AuctionPage() {
                   onChange={(event) => setCustomAmount(event.target.value)}
                 />
               </label>
-              <button type="submit" className="btn btn--secondary" disabled={submitting}>
+              <Button type="submit" variant="secondary" disabled={submitting}>
                 Поставить
-              </button>
+              </Button>
             </form>
 
             {openLot.recentBids.length > 0 && (
@@ -213,9 +218,9 @@ export function AuctionPage() {
                 </ul>
               </>
             )}
-          </article>
+          </Card>
         ) : (
-          <p className="muted">Сейчас нет открытого лота. Ждите, пока ведущий начнёт торги.</p>
+          <p className="empty-state">Сейчас нет открытого лота. Ждите, пока ведущий начнёт торги.</p>
         )}
 
         {state && state.lots.length > 0 && (

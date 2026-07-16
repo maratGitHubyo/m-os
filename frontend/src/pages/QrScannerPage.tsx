@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { extractPublicIdFromQrText, scanQrByPublicId, scanQrCode } from '../api/qr';
+import { PageHeader } from '../components/ui/PageHeader';
 import { translateError } from '../i18n/ru';
 import type { QrScanResponse, QrScanResultResponse } from '../types';
 
@@ -95,7 +96,10 @@ export function QrScannerPage() {
 
   return (
     <section className="qr-page qr-scanner-page">
-      <h1>Сканировать QR</h1>
+      <PageHeader
+        title="Сканировать QR"
+        hint="Камерой телефона по ссылке — награда придёт автоматически после входа."
+      />
 
       {scanning && (
         <div className="qr-hero qr-hero--processing" role="status">

@@ -8,7 +8,7 @@ class PasswordHashGeneratorTest {
 
     @Test
     void writeAdminPasswordHashToFile() throws Exception {
-        String hash = new BCryptPasswordEncoder().encode("admin123");
+        String hash = new BCryptPasswordEncoder().encode("Kv7nR2xP");
         Path output = Path.of("target/dev-seed-hash.txt");
         Files.writeString(output, hash);
     }

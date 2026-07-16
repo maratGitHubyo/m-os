@@ -6,6 +6,7 @@ import com.mos.qrcode.dto.QrCodeResponse;
 import com.mos.qrcode.entity.QrCode;
 import com.mos.qrcode.service.QrCodeService;
 import com.mos.qrcode.service.QrImageService;
+import com.mos.qrcode.service.QrPrintDocxService;
 import com.mos.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +32,24 @@ public class AdminQrCodeController {
 
     private final QrCodeService qrCodeService;
     private final QrImageService qrImageService;
+    private final QrPrintDocxService qrPrintDocxService;
+
+    @GetMapping
+    public List<QrCodeResponse> listQrCodes() {
+        var admin = SecurityUtils.getCurrentUser();
+        return qrCodeService.listQrCodes(admin.gameSessionId());
+    }
+
+    @GetMapping("/print-docx")
+    public ResponseEntity<byte[]> downloadPrintDocument() {
+        var admin = SecurityUtils.getCurrentUser();
+        byte[] document = qrPrintDocxService.buildPrintDocument(admin.gameSessionId());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"mos-qr-print.docx\"")
+                .body(document);
+    }
 
     @PostMapping
     public QrCodeResponse createQrCode(@Valid @RequestBody CreateQrCodeRequest request) {

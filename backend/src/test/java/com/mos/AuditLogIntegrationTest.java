@@ -103,7 +103,7 @@ class AuditLogIntegrationTest {
         var result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"admin","password":"admin123"}
+                                {"username":"marat","password":"Kv7nR2xP"}
                                 """))
                 .andExpect(status().isOk())
                 .andReturn();

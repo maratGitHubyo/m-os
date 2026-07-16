@@ -37,7 +37,7 @@ class AuthIntegrationTest {
 
     @BeforeEach
     void verifySeedPassword() {
-        assertThat(passwordEncoder.matches("admin123", "$2a$10$hADQDps99NG7nGqMhNGdPeZQgS8PVEOO.O0uiQkU62.FDPV2Pkn3u"))
+        assertThat(passwordEncoder.matches("Kv7nR2xP", "$2a$10$EXcu/UIUKBQj7efok.4FWO6qYL7d/ImcExOyeQz/1dw17q8WCFtZW"))
                 .isTrue();
     }
 
@@ -46,11 +46,11 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"admin","password":"admin123"}
+                                {"username":"marat","password":"Kv7nR2xP"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty())
-                .andExpect(jsonPath("$.user.nickname").value("Admin"))
+                .andExpect(jsonPath("$.user.nickname").value("Марат"))
                 .andExpect(jsonPath("$.user.role").value("ADMIN"))
                 .andExpect(jsonPath("$.session.name").value("M-OS Dev Session"));
     }
@@ -60,7 +60,7 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"admin","password":"wrong-password"}
+                                {"username":"marat","password":"wrong-password"}
                                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Invalid username or password"));
@@ -77,7 +77,7 @@ class AuthIntegrationTest {
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"admin","password":"admin123"}
+                                {"username":"marat","password":"Kv7nR2xP"}
                                 """))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -90,8 +90,8 @@ class AuthIntegrationTest {
         mockMvc.perform(get("/api/users/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.nickname").value("Admin"));
+                .andExpect(jsonPath("$.username").value("marat"))
+                .andExpect(jsonPath("$.nickname").value("Марат"));
 
         mockMvc.perform(get("/api/session/current")
                         .header("Authorization", "Bearer " + token))
@@ -110,7 +110,7 @@ class AuthIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"admin","password":"admin123"}
+                                {"username":"marat","password":"Kv7nR2xP"}
                                 """))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.message").value("No ACTIVE or STARTING game session configured"));

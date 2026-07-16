@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchCurrentSession, fetchLocations } from '../api/locations';
 import { GameMap } from '../components/GameMap';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
 import { translateError } from '../i18n/ru';
 import type { LocationPoint } from '../types';
@@ -53,16 +54,17 @@ export function MapPage() {
 
   return (
     <section className="map-page">
-      <h1>Карта</h1>
-      <p className="page-hint">
-        План дачи по сетке А–Д / 1–11; второй этаж — Е–З / 12–14. Скрытые локации показывают
-        только зону, пока не открыты.
-      </p>
+      <PageHeader
+        title="Карта"
+        hint="План дачи по сетке А–Д / 1–11; второй этаж — Е–З / 12–14. Скрытые локации показывают только зону, пока не открыты."
+      />
 
       <PageState
         loading={loading}
         error={error}
         loadingLabel="Загрузка карты…"
+        skeleton="card"
+        skeletonCount={2}
       >
         <>
           <GameMap

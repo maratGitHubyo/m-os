@@ -99,13 +99,12 @@ Browser → nginx (production) → React static / Spring Boot API
 - Player routes require authentication; `/api/admin/**` requires `ROLE_ADMIN`
 - Logout is client-side (stateless JWT)
 
-Demo users (with demo seed):
+Seeded users (with demo seed):
 
 | User | Password | Role |
 |------|----------|------|
-| admin | admin123 | ADMIN |
-| alice | demo123 | PLAYER |
-| bob | demo123 | PLAYER |
+| marat | Kv7nR2xP | ADMIN (host) |
+| amina … katya | see `DemoSeedConstants.PARTY_PLAYERS` | PLAYER |
 
 ---
 

@@ -99,7 +99,7 @@ class AuctionIntegrationTest {
         bidderUserId = bidder.getId();
         addParticipant(bidder, ParticipantRole.PLAYER);
 
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
         bidderToken = login(bidder.getUsername(), "player123");
         creditWallet(adminToken, bidderUserId, 500);
     }

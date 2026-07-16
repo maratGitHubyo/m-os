@@ -94,7 +94,7 @@ class QuestIntegrationTest {
     void setUp() throws Exception {
         playerQuestRepository.deleteAll();
         questRepository.deleteAll();
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
     }
 
     @Test

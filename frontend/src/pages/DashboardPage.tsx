@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { fetchCurrentSession } from '../api/locations';
 import { fetchMyQuests } from '../api/quests';
 import { fetchMyWallet } from '../api/wallet';
+import { Badge } from '../components/ui/Badge';
+import { Card, StatCard } from '../components/ui/Card';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
 import { formatEnum, questType, roleLabel, sessionStatus, translateError } from '../i18n/ru';
 import { useAuth } from '../stores/authStore';
@@ -60,12 +63,20 @@ export function DashboardPage() {
 
   return (
     <section className="dashboard-page">
-      <h1>Главная</h1>
-      <p className="page-hint">Обзор вашей игры.</p>
+      <PageHeader
+        title="Статус-борд"
+        hint="Обзор экспедиции: сессия, монеты и активные задания."
+      />
 
-      <PageState loading={loading} error={error} loadingLabel="Загрузка главной…">
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Загрузка главной…"
+        skeleton="list"
+        skeletonCount={4}
+      >
         <div className="dashboard-grid">
-          <article className="card card--wide dashboard-flow">
+          <Card wide className="dashboard-flow">
             <h2>Игровой цикл</h2>
             <p className="page-hint dashboard-flow__steps">
               Исследовать → Получить M-Coins → Обменяться → Собрать больше к аукциону
@@ -84,9 +95,9 @@ export function DashboardPage() {
                 <span>Предметы и монеты</span>
               </Link>
             </div>
-          </article>
+          </Card>
 
-          <article className="card">
+          <Card>
             <h2>Профиль</h2>
             <dl className="data-list">
               <div>
@@ -102,9 +113,9 @@ export function DashboardPage() {
                 <dd>{user?.role ? formatEnum(user.role, roleLabel) : '—'}</dd>
               </div>
             </dl>
-          </article>
+          </Card>
 
-          <article className="card">
+          <Card>
             <h2>Сессия</h2>
             <dl className="data-list">
               <div>
@@ -114,28 +125,26 @@ export function DashboardPage() {
               <div>
                 <dt>Статус</dt>
                 <dd>
-                  <span className={`badge badge--${(sessionInfo?.status ?? 'STARTING').toLowerCase()}`}>
+                  <Badge tone={(sessionInfo?.status ?? 'STARTING').toLowerCase()}>
                     {sessionInfo?.status
                       ? formatEnum(sessionInfo.status, sessionStatus)
                       : '—'}
-                  </span>
+                  </Badge>
                 </dd>
               </div>
             </dl>
-          </article>
+          </Card>
 
-          <article className="card">
-            <h2>Кошелёк</h2>
-            <p className="dashboard-stat">{wallet?.balance ?? 0} М-коинов</p>
+          <StatCard label="Баланс" value={`${wallet?.balance ?? 0} M`}>
             <Link to="/wallet" className="card-link">
               Открыть кошелёк →
             </Link>
-          </article>
+          </StatCard>
 
-          <article className="card card--wide">
+          <Card wide>
             <h2>Активные квесты</h2>
             {activeQuests.length === 0 ? (
-              <p className="empty-state">Нет активных квестов. Начните квест на странице квестов.</p>
+              <p className="empty-state">Нет активных квестов. Начните задание на странице квестов.</p>
             ) : (
               <ul className="simple-list">
                 {activeQuests.map((quest) => (
@@ -149,7 +158,7 @@ export function DashboardPage() {
             <Link to="/quests" className="card-link">
               Все квесты →
             </Link>
-          </article>
+          </Card>
         </div>
       </PageState>
     </section>

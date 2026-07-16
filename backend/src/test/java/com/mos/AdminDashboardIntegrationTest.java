@@ -12,6 +12,7 @@ import com.mos.quest.enums.QuestDefinitionStatus;
 import com.mos.quest.repository.QuestRepository;
 import com.mos.seed.DemoDataSeeder;
 import com.mos.seed.DemoSeedConstants;
+import com.mos.seed.PartyItemCatalog;
 import com.mos.session.entity.GameSession;
 import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.repository.GameSessionRepository;
@@ -68,7 +69,7 @@ class AdminDashboardIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        adminToken = login("admin", "admin123");
+        adminToken = login("marat", "Kv7nR2xP");
         resetSessionStatus(GameSessionStatus.STARTING);
     }
 
@@ -76,18 +77,21 @@ class AdminDashboardIntegrationTest {
     void demoSeedCreatesData() {
         demoDataSeeder.seedDemoData();
 
-        assertThat(userRepository.existsByUsername("alice")).isTrue();
-        assertThat(userRepository.existsByUsername("bob")).isTrue();
+        assertThat(userRepository.existsByUsername(DemoSeedConstants.HOST_ADMIN.username())).isTrue();
+        assertThat(userRepository.existsByUsername("amina")).isTrue();
+        assertThat(userRepository.existsByUsername("katya")).isTrue();
         assertThat(gameSessionRepository.findById(DemoSeedConstants.SESSION_ID).orElseThrow().getName())
                 .isEqualTo(DemoSeedConstants.DEMO_SESSION_NAME);
-        assertThat(locationPointRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID)).isEqualTo(5);
-        assertThat(itemTemplateRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID)).isEqualTo(3);
-        assertThat(qrCodeRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID)).isEqualTo(3);
+        assertThat(locationPointRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID)).isZero();
+        assertThat(itemTemplateRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID))
+                .isEqualTo(PartyItemCatalog.ITEMS.size());
+        assertThat(qrCodeRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID))
+                .isEqualTo(PartyItemCatalog.ITEMS.size());
         assertThat(questRepository.countByGameSessionIdAndStatus(
-                DemoSeedConstants.SESSION_ID, QuestDefinitionStatus.ACTIVE)).isEqualTo(2);
+                DemoSeedConstants.SESSION_ID, QuestDefinitionStatus.ACTIVE)).isZero();
         for (int value = 1; value <= 5; value++) {
             assertThat(collectibleNumberRepository.existsByGameSessionIdAndNumberValue(
-                    DemoSeedConstants.SESSION_ID, value)).isTrue();
+                    DemoSeedConstants.SESSION_ID, value)).isFalse();
         }
     }
 
@@ -100,11 +104,12 @@ class AdminDashboardIntegrationTest {
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.currentSession.name").value(DemoSeedConstants.DEMO_SESSION_NAME))
-                    .andExpect(jsonPath("$.playersCount").value(3))
-                    .andExpect(jsonPath("$.activeQuests").value(2))
-                    .andExpect(jsonPath("$.locationsCount").value(5))
-                    .andExpect(jsonPath("$.itemsCount").value(3))
-                    .andExpect(jsonPath("$.qrCount").value(3))
+                    // 18 party players (admins excluded from count)
+                    .andExpect(jsonPath("$.playersCount").value(18))
+                    .andExpect(jsonPath("$.activeQuests").value(0))
+                    .andExpect(jsonPath("$.locationsCount").value(0))
+                    .andExpect(jsonPath("$.itemsCount").value(PartyItemCatalog.ITEMS.size()))
+                    .andExpect(jsonPath("$.qrCount").value(PartyItemCatalog.ITEMS.size()))
                     .andExpect(jsonPath("$.leaderboard").isArray());
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -114,10 +119,11 @@ class AdminDashboardIntegrationTest {
     @Test
     void playerCannotAccessDashboard() throws Exception {
         demoDataSeeder.seedDemoData();
-        String aliceToken = login("alice", DemoSeedConstants.DEMO_PLAYER_PASSWORD);
+        var amina = DemoSeedConstants.PARTY_PLAYERS.getFirst();
+        String playerToken = login(amina.username(), amina.password());
 
         mockMvc.perform(get("/api/admin/dashboard")
-                        .header("Authorization", "Bearer " + aliceToken))
+                        .header("Authorization", "Bearer " + playerToken))
                 .andExpect(status().isForbidden());
     }
 

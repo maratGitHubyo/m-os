@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { redeemSecret } from '../api/secrets';
-import { PageState } from '../components/ui/PageState';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { PageHeader } from '../components/ui/PageHeader';
 import { formatEnum, itemRarity, translateError } from '../i18n/ru';
 import { showToast } from '../stores/toastStore';
 import type { SecretRedeemResponse } from '../types';
@@ -65,12 +67,12 @@ export function SecretsPage() {
 
   return (
     <section className="secrets-page">
-      <h1>Промокод</h1>
-      <p className="page-hint">
-        Введите персональный промокод от организатора, чтобы получить награду.
-      </p>
+      <PageHeader
+        title="Промокод"
+        hint="Введите персональный код от организатора, чтобы получить награду."
+      />
 
-      <article className="card player-action-card">
+      <Card className="player-action-card">
         <form className="player-form" onSubmit={handleSubmit}>
           <label className="form-field">
             <span>Промокод</span>
@@ -83,11 +85,11 @@ export function SecretsPage() {
               required
             />
           </label>
-          <button type="submit" className="btn btn--primary" disabled={submitting}>
+          <Button type="submit" disabled={submitting}>
             {submitting ? 'Активация…' : 'Активировать'}
-          </button>
+          </Button>
         </form>
-      </article>
+      </Card>
 
       {error && (
         <div className="result-panel result-panel--error" role="alert">
@@ -115,9 +117,7 @@ export function SecretsPage() {
       )}
 
       {!error && !result && !submitting && (
-        <PageState loading={false} error={null}>
-          <p className="empty-state">Введите код и нажмите «Активировать».</p>
-        </PageState>
+        <p className="empty-state">Введите код и нажмите «Активировать».</p>
       )}
     </section>
   );

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { fetchCurrentSession } from '../api/locations';
 import { fetchSessionPlayers } from '../api/players';
 import { fetchMyTransactions, fetchMyWallet, fetchTransfers, transferCoins } from '../api/wallet';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { PageHeader } from '../components/ui/PageHeader';
 import { PageState } from '../components/ui/PageState';
 import { translateError } from '../i18n/ru';
 import { showToast } from '../stores/toastStore';
@@ -92,95 +95,103 @@ export function WalletPage() {
 
   return (
     <section className="wallet-page">
-      <h1>Кошелёк</h1>
-      <p className="page-hint">Баланс М-коинов, переводы и история транзакций.</p>
+      <PageHeader
+        title="Кошелёк"
+        hint="Баланс М-коинов, переводы и история операций."
+      />
 
-      <PageState loading={loading} error={error} loadingLabel="Загрузка кошелька…">
+      <PageState
+        loading={loading}
+        error={error}
+        loadingLabel="Загрузка кошелька…"
+        skeleton="stat"
+      >
         {wallet && user && (
-        <>
-          <article className="card wallet-balance">
-            <h2>Текущий баланс</h2>
-            <p className="dashboard-stat">{wallet.balance} М-коинов</p>
-          </article>
+          <>
+            <Card className="wallet-balance">
+              <p className="stat-card__label">Текущий баланс</p>
+              <p className="dashboard-stat">{wallet.balance}</p>
+              <p className="page-hint">M-Coins</p>
+            </Card>
 
-          <article className="card wallet-transfer">
-            <h2>Перевод M-coins</h2>
-            {auctionFrozen ? (
-              <p className="muted">Переводы заморожены на время аукциона.</p>
+            <Card className="wallet-transfer">
+              <h2>Перевод M-coins</h2>
+              {auctionFrozen ? (
+                <p className="page-hint">Переводы заморожены на время аукциона.</p>
+              ) : (
+                <form className="wallet-transfer__form" onSubmit={handleTransfer}>
+                  <label className="form-field">
+                    <span>Игрок</span>
+                    <select
+                      value={receiverUserId}
+                      onChange={(event) => setReceiverUserId(event.target.value)}
+                      required
+                    >
+                      <option value="">Выберите игрока</option>
+                      {players.map((player) => (
+                        <option key={player.id} value={player.id}>
+                          {player.nickname}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>Сумма</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={amount}
+                      onChange={(event) => setAmount(event.target.value)}
+                      required
+                    />
+                  </label>
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? 'Отправка…' : 'Отправить'}
+                  </Button>
+                </form>
+              )}
+            </Card>
+
+            <h2 className="section-title">Переводы</h2>
+            {transfers.length === 0 ? (
+              <p className="empty-state">Переводов пока нет.</p>
             ) : (
-              <form className="wallet-transfer__form" onSubmit={handleTransfer}>
-                <label className="form-field">
-                  <span>Игрок</span>
-                  <select
-                    value={receiverUserId}
-                    onChange={(event) => setReceiverUserId(event.target.value)}
-                    required
-                  >
-                    <option value="">Выберите игрока</option>
-                    {players.map((player) => (
-                      <option key={player.id} value={player.id}>
-                        {player.nickname}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="form-field">
-                  <span>Сумма</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    required
-                  />
-                </label>
-                <button type="submit" className="btn btn--primary" disabled={submitting}>
-                  {submitting ? 'Отправка…' : 'Отправить'}
-                </button>
-              </form>
+              <ul className="transaction-list">
+                {transfers.map((transfer) => (
+                  <li key={transfer.id} className="transaction-item">
+                    <div>
+                      <strong>{formatTransfer(transfer, user.id)}</strong>
+                      <span className="transaction-item__meta">
+                        {new Date(transfer.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
-          </article>
 
-          <h2 className="section-title">Переводы</h2>
-          {transfers.length === 0 ? (
-            <p className="empty-state">Переводов пока нет.</p>
-          ) : (
-            <ul className="transaction-list">
-              {transfers.map((transfer) => (
-                <li key={transfer.id} className="transaction-item">
-                  <div>
-                    <strong>{formatTransfer(transfer, user.id)}</strong>
-                    <span className="transaction-item__meta">
-                      {new Date(transfer.createdAt).toLocaleString()}
+            <h2 className="section-title">Транзакции</h2>
+            {transactions.length === 0 ? (
+              <p className="empty-state">Транзакций пока нет.</p>
+            ) : (
+              <ul className="transaction-list">
+                {transactions.map((tx) => (
+                  <li key={tx.id} className="transaction-item">
+                    <div>
+                      <strong>{tx.description ?? tx.type}</strong>
+                      <span className="transaction-item__meta">
+                        {new Date(tx.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <span className={tx.amount >= 0 ? 'amount amount--plus' : 'amount amount--minus'}>
+                      {tx.amount >= 0 ? '+' : ''}
+                      {tx.amount}
                     </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <h2 className="section-title">Транзакции</h2>
-          {transactions.length === 0 ? (
-            <p className="empty-state">Транзакций пока нет.</p>
-          ) : (
-            <ul className="transaction-list">
-              {transactions.map((tx) => (
-                <li key={tx.id} className="transaction-item">
-                  <div>
-                    <strong>{tx.description ?? tx.type}</strong>
-                    <span className="transaction-item__meta">
-                      {new Date(tx.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                  <span className={tx.amount >= 0 ? 'amount amount--plus' : 'amount amount--minus'}>
-                    {tx.amount >= 0 ? '+' : ''}
-                    {tx.amount}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </PageState>
     </section>

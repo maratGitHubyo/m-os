@@ -65,6 +65,7 @@ export interface AdminLocationPoint {
 
 export interface CreateQrCodeRequest {
   code: string;
+  title?: string;
   locationPointId?: string | null;
   rewardType: 'COIN' | 'ITEM' | 'NONE';
   rewardPayload?: Record<string, unknown>;

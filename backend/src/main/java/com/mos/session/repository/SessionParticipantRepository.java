@@ -1,5 +1,6 @@
 package com.mos.session.repository;
 
+import com.mos.session.entity.ParticipantRole;
 import com.mos.session.entity.SessionParticipant;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,7 +14,11 @@ public interface SessionParticipantRepository extends JpaRepository<SessionParti
 
     List<SessionParticipant> findByGameSessionId(UUID gameSessionId);
 
+    List<SessionParticipant> findByGameSessionIdAndRole(UUID gameSessionId, ParticipantRole role);
+
     List<SessionParticipant> findByUserId(UUID userId);
 
     long countByGameSessionId(UUID gameSessionId);
+
+    long countByGameSessionIdAndRole(UUID gameSessionId, ParticipantRole role);
 }

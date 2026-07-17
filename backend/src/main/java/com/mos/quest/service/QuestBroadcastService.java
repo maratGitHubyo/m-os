@@ -3,6 +3,8 @@ package com.mos.quest.service;
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
 import com.mos.common.exception.SessionConfigurationException;
+import com.mos.notification.enums.AppNotificationType;
+import com.mos.notification.websocket.AppNotificationPublisher;
 import com.mos.quest.dto.BroadcastQuestsResponse;
 import com.mos.quest.dto.QuestAutoDistributeStatusResponse;
 import com.mos.quest.entity.Quest;
@@ -40,6 +42,7 @@ public class QuestBroadcastService {
     private final SessionParticipantRepository sessionParticipantRepository;
     private final GameConfigRepository gameConfigRepository;
     private final AuditService auditService;
+    private final AppNotificationPublisher appNotificationPublisher;
 
     @Transactional
     public BroadcastQuestsResponse broadcast(UUID gameSessionId, int count, UUID performedByUserId) {
@@ -86,6 +89,17 @@ public class QuestBroadcastService {
                     gameSessionId.toString(),
                     "Broadcast " + count + " quest(s) to " + players.size() + " player(s)",
                     meta
+            );
+        }
+
+        if (!players.isEmpty() && count > 0) {
+            String questWord = count == 1 ? "задание" : (count < 5 ? "задания" : "заданий");
+            appNotificationPublisher.publish(
+                    AppNotificationType.QUEST_BROADCAST,
+                    gameSessionId,
+                    null,
+                    "Новые задания",
+                    "Вам выдано " + count + " " + questWord
             );
         }
 

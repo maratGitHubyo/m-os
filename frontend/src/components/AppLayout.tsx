@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { fetchCurrentSession } from '../api/locations';
 import { EventNotifications } from './EventNotifications';
+import { EnableNotificationsButton } from './EnableNotificationsButton';
 import { InstallAppButton } from './InstallAppButton';
 import { logout, useAuth } from '../stores/authStore';
 
@@ -219,6 +220,7 @@ export function AppLayout() {
             </span>
           )}
           <InstallAppButton />
+          <EnableNotificationsButton />
         </div>
         <nav className="app-nav app-nav--desktop" aria-label="Основная навигация">
           {desktopNav.map((item) => (

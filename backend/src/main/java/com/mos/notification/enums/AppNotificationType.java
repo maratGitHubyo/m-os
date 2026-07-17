@@ -1,0 +1,16 @@
+package com.mos.notification.enums;
+
+public enum AppNotificationType {
+    TRADE_OFFER,
+    TRADE_ACCEPTED,
+    TRADE_DECLINED,
+    TRADE_CANCELLED,
+    COIN_TRANSFER_RECEIVED,
+    ADMIN_COIN_CREDIT,
+    ADMIN_COIN_DEBIT,
+    ADMIN_COIN_BULK,
+    QUEST_ASSIGNED,
+    QUEST_BROADCAST,
+    QUEST_SLOT_TAKEN,
+    QUEST_CLOSED
+}

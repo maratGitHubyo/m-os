@@ -3001,6 +3001,16 @@ textarea:focus-visible {
   text-align: center;
 }
 
+.notify-enable {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.notify-enable__button {
+  white-space: nowrap;
+}
+
 .splash-screen {
   position: fixed;
   inset: 0;

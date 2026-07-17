@@ -9,6 +9,8 @@ import com.mos.common.exception.CoinTransferUserNotInSessionException;
 import com.mos.common.exception.ConcurrentModificationException;
 import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.InvalidAmountException;
+import com.mos.notification.enums.AppNotificationType;
+import com.mos.notification.websocket.AppNotificationPublisher;
 import com.mos.session.entity.ParticipantRole;
 import com.mos.session.entity.SessionParticipant;
 import com.mos.session.repository.GameConfigRepository;
@@ -49,6 +51,7 @@ public class WalletService {
     private final SessionParticipantRepository sessionParticipantRepository;
     private final GameConfigRepository gameConfigRepository;
     private final AuctionModeService auctionModeService;
+    private final AppNotificationPublisher appNotificationPublisher;
 
     @Transactional(readOnly = true)
     public WalletResponse getWallet(UUID userId, UUID gameSessionId) {
@@ -103,9 +106,18 @@ public class WalletService {
             String description,
             UUID adminUserId
     ) {
-        return CoinTransactionResponse.from(
+        CoinTransactionResponse response = CoinTransactionResponse.from(
                 applyBalanceChange(targetUserId, gameSessionId, amount, CoinTransactionType.ADMIN, description, adminUserId, AuditAction.COIN_CREDIT)
         );
+        appNotificationPublisher.publish(
+                AppNotificationType.ADMIN_COIN_CREDIT,
+                gameSessionId,
+                targetUserId,
+                "Начисление монет",
+                "Администратор начислил вам " + amount
+                        + (description != null && !description.isBlank() ? ": " + description : "")
+        );
+        return response;
     }
 
     @Transactional
@@ -116,9 +128,18 @@ public class WalletService {
             String description,
             UUID adminUserId
     ) {
-        return CoinTransactionResponse.from(
+        CoinTransactionResponse response = CoinTransactionResponse.from(
                 applyBalanceChange(targetUserId, gameSessionId, -amount, CoinTransactionType.ADMIN, description, adminUserId, AuditAction.COIN_DEBIT)
         );
+        appNotificationPublisher.publish(
+                AppNotificationType.ADMIN_COIN_DEBIT,
+                gameSessionId,
+                targetUserId,
+                "Списание монет",
+                "Администратор списал " + amount
+                        + (description != null && !description.isBlank() ? ": " + description : "")
+        );
+        return response;
     }
 
     @Transactional
@@ -161,6 +182,17 @@ public class WalletService {
                         "totalCredited", amount * players.size()
                 )
         );
+
+        if (!players.isEmpty()) {
+            appNotificationPublisher.publish(
+                    AppNotificationType.ADMIN_COIN_BULK,
+                    gameSessionId,
+                    null,
+                    "Начисление монет",
+                    "Вам начислено " + amount + " монет"
+                            + (description != null && !description.isBlank() ? ": " + description : "")
+            );
+        }
 
         return new AdminBulkCreditResponse(players.size(), amount, amount * players.size());
     }
@@ -269,6 +301,14 @@ public class WalletService {
                 "CoinTransfer",
                 transfer.getId().toString(),
                 "Coin transfer completed"
+        );
+
+        appNotificationPublisher.publish(
+                AppNotificationType.COIN_TRANSFER_RECEIVED,
+                gameSessionId,
+                receiverUserId,
+                "Перевод монет",
+                sender.getNicknameSnapshot() + " перевёл(а) вам " + amount
         );
 
         return transfer;

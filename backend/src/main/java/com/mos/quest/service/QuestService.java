@@ -11,6 +11,8 @@ import com.mos.common.exception.QuestNotFoundException;
 import com.mos.common.exception.QuestNotStartedException;
 import com.mos.item.enums.ItemAcquisitionSource;
 import com.mos.item.service.ItemService;
+import com.mos.notification.enums.AppNotificationType;
+import com.mos.notification.websocket.AppNotificationPublisher;
 import com.mos.quest.dto.CompleteQuestRequest;
 import com.mos.quest.dto.CreateQuestRequest;
 import com.mos.quest.dto.PlayerQuestResponse;
@@ -48,6 +50,7 @@ public class QuestService {
     private final AuditService auditService;
     private final WalletService walletService;
     private final ItemService itemService;
+    private final AppNotificationPublisher appNotificationPublisher;
 
     @Transactional
     public QuestResponse createQuest(UUID gameSessionId, CreateQuestRequest request, UUID performedByUserId) {
@@ -89,6 +92,26 @@ public class QuestService {
                 "Quest created: " + quest.getTitle(),
                 createMeta
         );
+
+        if (quest.getStatus() == QuestDefinitionStatus.ACTIVE) {
+            if (assigneeUserId != null) {
+                appNotificationPublisher.publish(
+                        AppNotificationType.QUEST_ASSIGNED,
+                        gameSessionId,
+                        assigneeUserId,
+                        "Новый квест",
+                        "Вам назначен квест «" + quest.getTitle() + "»"
+                );
+            } else {
+                appNotificationPublisher.publish(
+                        AppNotificationType.QUEST_ASSIGNED,
+                        gameSessionId,
+                        null,
+                        "Новый квест",
+                        "Доступен квест «" + quest.getTitle() + "»"
+                );
+            }
+        }
 
         return QuestResponse.from(quest, 0L, true);
     }
@@ -235,6 +258,16 @@ public class QuestService {
                 )
         );
 
+        if (!activePlayerQuests.isEmpty()) {
+            appNotificationPublisher.publish(
+                    AppNotificationType.QUEST_CLOSED,
+                    gameSessionId,
+                    null,
+                    "Квесты закрыты",
+                    "Незавершённые квесты завершены перед аукционом"
+            );
+        }
+
         return activePlayerQuests.size();
     }
 
@@ -367,6 +400,14 @@ public class QuestService {
             other.setStatus(PlayerQuestStatus.FAILED);
             other.setCompletedAt(now);
             playerQuestRepository.save(other);
+
+            appNotificationPublisher.publish(
+                    AppNotificationType.QUEST_SLOT_TAKEN,
+                    other.getGameSessionId(),
+                    other.getUserId(),
+                    "Квест закрыт",
+                    "«" + quest.getTitle() + "» выполнен другим игроком"
+            );
         }
     }
 

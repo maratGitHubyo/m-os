@@ -37,12 +37,25 @@ if (-not (Test-Path $envFile)) {
 Get-Process ngrok -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
 
+$logOut = Join-Path $env:TEMP "mos-ngrok-out.log"
+$logErr = Join-Path $env:TEMP "mos-ngrok-err.log"
+Remove-Item $logOut, $logErr -ErrorAction SilentlyContinue
+
 Write-Host "Starting ngrok http 80 ..."
-$ngrok = Start-Process -FilePath "ngrok" -ArgumentList @("http", "80", "--log=stdout") -PassThru -WindowStyle Minimized
+$ngrok = Start-Process -FilePath "ngrok" `
+  -ArgumentList @("http", "80", "--log=stdout", "--log-level=info") `
+  -PassThru -WindowStyle Minimized `
+  -RedirectStandardOutput $logOut `
+  -RedirectStandardError $logErr
 
 $publicUrl = $null
-for ($i = 0; $i -lt 30; $i++) {
+for ($i = 0; $i -lt 25; $i++) {
   Start-Sleep -Seconds 1
+
+  if ($ngrok.HasExited) {
+    break
+  }
+
   try {
     $tunnels = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -TimeoutSec 2
     $https = $tunnels.tunnels | Where-Object { $_.public_url -like "https://*" } | Select-Object -First 1
@@ -57,7 +70,34 @@ for ($i = 0; $i -lt 30; $i++) {
 
 if (-not $publicUrl) {
   Stop-Process -Id $ngrok.Id -Force -ErrorAction SilentlyContinue
-  Write-Error "Could not get ngrok public URL. Is docker nginx listening on :80? Open http://127.0.0.1:4040"
+
+  $errText = ""
+  if (Test-Path $logErr) { $errText += (Get-Content $logErr -Raw) }
+  if (Test-Path $logOut) { $errText += (Get-Content $logOut -Raw) }
+
+  Write-Host ""
+  Write-Host "ngrok failed to create a public URL." -ForegroundColor Red
+  if ($errText -match "ERR_NGROK_9040|do not allow agents to connect.*IP") {
+    Write-Host @"
+
+Причина: ngrok блокирует ваш IP (ERR_NGROK_9040).
+Это ограничение ngrok, не M-OS и не Docker.
+
+Варианты:
+  1) Для вечеринки в одной Wi-Fi — без ngrok:
+       http://<IP-ноутбука>   (например http://192.168.1.138)
+  2) VPN в другую страну → снова запустить этот скрипт
+  3) Cloudflare Tunnel (часто работает там, где ngrok режет IP)
+
+Лог: $logErr
+"@
+  } elseif ($errText) {
+    Write-Host $errText
+  } else {
+    Write-Host "Is docker nginx listening on :80? Try: docker ps"
+    Write-Host "Manual check: ngrok http 80"
+  }
+  exit 1
 }
 
 Write-Host ""
@@ -65,8 +105,15 @@ Write-Host "Public URL: $publicUrl"
 Write-Host "ngrok UI:    http://127.0.0.1:4040"
 Write-Host ""
 
+$lanIp = (
+  Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+  Where-Object { $_.IPAddress -like '192.168.*' } |
+  Select-Object -ExpandProperty IPAddress -First 1
+)
+if (-not $lanIp) { $lanIp = "192.168.1.143" }
+
 $content = Get-Content $envFile -Raw
-$corsLine = "MOS_CORS_ALLOWED_ORIGINS=$publicUrl,http://192.168.1.143,http://localhost"
+$corsLine = "MOS_CORS_ALLOWED_ORIGINS=$publicUrl,http://$lanIp,http://localhost"
 $qrLine = "MOS_QR_BASE_URL=$publicUrl/qr"
 
 if ($content -match "(?m)^MOS_CORS_ALLOWED_ORIGINS=.*$") {
@@ -93,6 +140,6 @@ Write-Host ""
 Write-Host "Ready. Open on phone (any network):"
 Write-Host "  $publicUrl"
 Write-Host ""
-Write-Host "Keep this terminal/session alive while guests use the app."
+Write-Host "Keep ngrok running while guests use the app."
 Write-Host "Dashboard: http://127.0.0.1:4040"
 Write-Host "Stop: Stop-Process -Name ngrok"

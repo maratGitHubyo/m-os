@@ -26,6 +26,8 @@ import com.mos.trade.enums.TradeStatus;
 import com.mos.trade.repository.TradeCoinRepository;
 import com.mos.trade.repository.TradeItemRepository;
 import com.mos.trade.repository.TradeRepository;
+import com.mos.notification.enums.AppNotificationType;
+import com.mos.notification.websocket.AppNotificationPublisher;
 import com.mos.wallet.enums.CoinTransactionType;
 import com.mos.wallet.repository.WalletRepository;
 import com.mos.wallet.service.WalletService;
@@ -54,6 +56,7 @@ public class TradeService {
     private final WalletService walletService;
     private final AuditService auditService;
     private final AuctionModeService auctionModeService;
+    private final AppNotificationPublisher appNotificationPublisher;
 
     @Transactional
     public TradeResponse createTrade(UUID initiatorId, UUID gameSessionId, CreateTradeRequest request) {
@@ -111,6 +114,14 @@ public class TradeService {
                 )
         );
 
+        appNotificationPublisher.publish(
+                AppNotificationType.TRADE_OFFER,
+                gameSessionId,
+                receiverId,
+                "Предложение обмена",
+                nickname(initiatorId, gameSessionId) + " предлагает вам обмен"
+        );
+
         return toResponse(trade);
     }
 
@@ -163,6 +174,14 @@ public class TradeService {
                 )
         );
 
+        appNotificationPublisher.publish(
+                AppNotificationType.TRADE_ACCEPTED,
+                gameSessionId,
+                trade.getInitiatorId(),
+                "Обмен принят",
+                nickname(receiverId, gameSessionId) + " принял(а) ваш обмен"
+        );
+
         return toResponse(trade);
     }
 
@@ -188,6 +207,14 @@ public class TradeService {
                 Map.of("tradeId", trade.getId().toString())
         );
 
+        appNotificationPublisher.publish(
+                AppNotificationType.TRADE_DECLINED,
+                gameSessionId,
+                trade.getInitiatorId(),
+                "Обмен отклонён",
+                nickname(receiverId, gameSessionId) + " отклонил(а) ваш обмен"
+        );
+
         return toResponse(trade);
     }
 
@@ -211,6 +238,14 @@ public class TradeService {
                 trade.getId().toString(),
                 "Trade cancelled",
                 Map.of("tradeId", trade.getId().toString())
+        );
+
+        appNotificationPublisher.publish(
+                AppNotificationType.TRADE_CANCELLED,
+                gameSessionId,
+                trade.getReceiverId(),
+                "Обмен отменён",
+                nickname(initiatorId, gameSessionId) + " отменил(а) предложение обмена"
         );
 
         return toResponse(trade);
@@ -404,6 +439,13 @@ public class TradeService {
     private void ensureParticipant(UUID userId, UUID gameSessionId) {
         sessionParticipantRepository.findByUserIdAndGameSessionId(userId, gameSessionId)
                 .orElseThrow(() -> new BusinessException("User is not a participant of this game session"));
+    }
+
+    private String nickname(UUID userId, UUID gameSessionId) {
+        return sessionParticipantRepository.findByUserIdAndGameSessionId(userId, gameSessionId)
+                .map(participant -> participant.getNicknameSnapshot())
+                .filter(name -> name != null && !name.isBlank())
+                .orElse("Игрок");
     }
 
     private TradeResponse toResponse(Trade trade) {

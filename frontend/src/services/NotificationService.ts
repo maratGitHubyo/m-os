@@ -71,6 +71,10 @@ export const NotificationService = {
     return false;
   },
 
+  isSupported(): boolean {
+    return typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator;
+  },
+
   async showLocalNotification(
     title: string,
     body: string,

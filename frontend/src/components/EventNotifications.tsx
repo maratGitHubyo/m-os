@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { API_URL } from '../api/client';
 import { eventStatus, formatEnum } from '../i18n/ru';
 import { NotificationService } from '../services/NotificationService';
 import { getToken, subscribe, useAuth } from '../stores/authStore';
-import type { GameEventBroadcast } from '../types';
+import type { AppNotificationMessage, GameEventBroadcast } from '../types';
 
-interface EventNotification {
+const BANNER_TTL_MS = 4500;
+
+interface BannerNotification {
   id: string;
   message: string;
 }
 
-function formatNotification(payload: GameEventBroadcast): string {
+function formatEventNotification(payload: GameEventBroadcast): string {
   const status = formatEnum(payload.status, eventStatus);
   return `${payload.title} — ${status}`;
 }
@@ -21,16 +23,40 @@ function isAppVisible(): boolean {
   return document.visibilityState === 'visible';
 }
 
-export function EventNotifications() {
-  const { session, isAuthenticated } = useAuth();
-  const [notifications, setNotifications] = useState<EventNotification[]>([]);
+function isForCurrentUser(payload: AppNotificationMessage, userId: string | undefined): boolean {
+  if (!payload.targetUserId) {
+    return true;
+  }
+  return Boolean(userId) && payload.targetUserId === userId;
+}
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-    void NotificationService.requestPermission();
-  }, [isAuthenticated]);
+function pushBanner(
+  setNotifications: Dispatch<SetStateAction<BannerNotification[]>>,
+  note: BannerNotification,
+): void {
+  setNotifications((current) => [note, ...current].slice(0, 5));
+  window.setTimeout(() => {
+    setNotifications((current) => current.filter((item) => item.id !== note.id));
+  }, BANNER_TTL_MS);
+}
+
+function deliverNotification(
+  title: string,
+  body: string,
+  id: string,
+  tag: string,
+  setNotifications: Dispatch<SetStateAction<BannerNotification[]>>,
+): void {
+  if (isAppVisible()) {
+    pushBanner(setNotifications, { id, message: body });
+  } else {
+    void NotificationService.showLocalNotification(title, body, { tag });
+  }
+}
+
+export function EventNotifications() {
+  const { session, user, isAuthenticated } = useAuth();
+  const [notifications, setNotifications] = useState<BannerNotification[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated || !session?.id) {
@@ -39,6 +65,7 @@ export function EventNotifications() {
 
     let client: Client | null = null;
     let cancelled = false;
+    const userId = user?.id;
 
     const connect = (token: string | null) => {
       if (!token || cancelled) {
@@ -57,19 +84,32 @@ export function EventNotifications() {
           client?.subscribe(`/topic/session/${session.id}/events`, (message: IMessage) => {
             try {
               const payload = JSON.parse(message.body) as GameEventBroadcast;
-              const text = formatNotification(payload);
-              const note: EventNotification = {
-                id: `${payload.eventId}-${payload.changedAt}`,
-                message: text,
-              };
+              const text = formatEventNotification(payload);
+              deliverNotification(
+                'Новое событие',
+                text,
+                `${payload.eventId}-${payload.changedAt}`,
+                `mos-event-${payload.eventId}`,
+                setNotifications,
+              );
+            } catch {
+              // ignore malformed messages
+            }
+          });
 
-              if (isAppVisible()) {
-                setNotifications((current) => [note, ...current].slice(0, 5));
-              } else {
-                void NotificationService.showLocalNotification('Новое событие', text, {
-                  tag: `mos-event-${payload.eventId}`,
-                });
+          client?.subscribe(`/topic/session/${session.id}/notifications`, (message: IMessage) => {
+            try {
+              const payload = JSON.parse(message.body) as AppNotificationMessage;
+              if (!isForCurrentUser(payload, userId)) {
+                return;
               }
+              deliverNotification(
+                payload.title,
+                payload.body,
+                `${payload.type}-${payload.createdAt}-${payload.targetUserId ?? 'all'}`,
+                `mos-app-${payload.type}-${payload.createdAt}`,
+                setNotifications,
+              );
             } catch {
               // ignore malformed messages
             }
@@ -91,7 +131,7 @@ export function EventNotifications() {
       unsubscribe();
       client?.deactivate();
     };
-  }, [isAuthenticated, session?.id]);
+  }, [isAuthenticated, session?.id, user?.id]);
 
   if (notifications.length === 0) {
     return null;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { ApiError } from '../api/client';
+import { InstallAppButton } from '../components/InstallAppButton';
 import { Button } from '../components/ui/Button';
 import { translateError } from '../i18n/ru';
 import { login as saveAuth } from '../stores/authStore';
@@ -92,6 +93,7 @@ export function LoginPage() {
         </form>
 
         <p className="login-card__hint">Логин и пароль выдаёт организатор</p>
+        <InstallAppButton />
       </div>
     </div>
   );

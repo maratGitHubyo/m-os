@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <title>M-OS — Нет подключения</title>
+    <style>
+      :root {
+        --void: #05060a;
+        --surface: #111827;
+        --cyan: #00f5ff;
+        --text: #e8f4ff;
+        --muted: #7a8fa8;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        min-height: 100dvh;
+        font-family: system-ui, sans-serif;
+        background:
+          radial-gradient(ellipse 80% 45% at 50% -8%, rgba(0, 245, 255, 0.12), transparent 55%),
+          linear-gradient(180deg, var(--void) 0%, #03040a 100%);
+        color: var(--text);
+      }
+      .offline {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: max(1.5rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+        gap: 0.75rem;
+      }
+      .offline__mark {
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(0, 245, 255, 0.35);
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        color: var(--cyan);
+        margin-bottom: 0.5rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: 0.04em;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 22rem;
+        line-height: 1.45;
+      }
+      button {
+        margin-top: 1rem;
+        border: 1px solid rgba(0, 245, 255, 0.35);
+        border-radius: 999px;
+        background: rgba(0, 245, 255, 0.12);
+        color: var(--cyan);
+        font: inherit;
+        font-weight: 700;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+      button:active { transform: scale(0.97); }
+    </style>
+  </head>
+  <body>
+    <main class="offline">
+      <div class="offline__mark" aria-hidden="true">M</div>
+      <h1>Нет подключения</h1>
+      <p>Проверьте интернет и попробуйте снова. Интерфейс M-OS доступен офлайн после первой загрузки.</p>
+      <button type="button" onclick="location.reload()">Повторить</button>
+    </main>
+  </body>
+</html>

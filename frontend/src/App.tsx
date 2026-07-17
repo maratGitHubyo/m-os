@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminRoute } from './components/admin/AdminRoute';
+import { OfflineScreen } from './components/OfflineScreen';
+import { SplashScreen } from './components/SplashScreen';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -42,9 +45,27 @@ function LoginRoute() {
   return <LoginPage />;
 }
 
+function useHideMobileBrowserChrome() {
+  useEffect(() => {
+    const hide = () => {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+      }
+      window.scrollTo(0, 1);
+    };
+    hide();
+    window.addEventListener('orientationchange', hide);
+    return () => window.removeEventListener('orientationchange', hide);
+  }, []);
+}
+
 export function App() {
+  useHideMobileBrowserChrome();
+
   return (
     <BrowserRouter>
+      <SplashScreen />
+      <OfflineScreen />
       <Routes>
         <Route path="/login" element={<LoginRoute />} />
         <Route element={<ProtectedRoute />}>

@@ -3,6 +3,7 @@ import { Client, type IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { API_URL } from '../api/client';
 import { eventStatus, formatEnum } from '../i18n/ru';
+import { NotificationService } from '../services/NotificationService';
 import { getToken, subscribe, useAuth } from '../stores/authStore';
 import type { GameEventBroadcast } from '../types';
 
@@ -16,9 +17,20 @@ function formatNotification(payload: GameEventBroadcast): string {
   return `${payload.title} — ${status}`;
 }
 
+function isAppVisible(): boolean {
+  return document.visibilityState === 'visible';
+}
+
 export function EventNotifications() {
   const { session, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState<EventNotification[]>([]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    void NotificationService.requestPermission();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated || !session?.id) {
@@ -45,11 +57,19 @@ export function EventNotifications() {
           client?.subscribe(`/topic/session/${session.id}/events`, (message: IMessage) => {
             try {
               const payload = JSON.parse(message.body) as GameEventBroadcast;
+              const text = formatNotification(payload);
               const note: EventNotification = {
                 id: `${payload.eventId}-${payload.changedAt}`,
-                message: formatNotification(payload),
+                message: text,
               };
-              setNotifications((current) => [note, ...current].slice(0, 5));
+
+              if (isAppVisible()) {
+                setNotifications((current) => [note, ...current].slice(0, 5));
+              } else {
+                void NotificationService.showLocalNotification('Новое событие', text, {
+                  tag: `mos-event-${payload.eventId}`,
+                });
+              }
             } catch {
               // ignore malformed messages
             }

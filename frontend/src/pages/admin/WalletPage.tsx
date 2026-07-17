@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { creditAllWallets, creditWallet, debitWallet } from '../../api/admin/wallet';
+import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
@@ -19,6 +20,7 @@ export function AdminWalletPage() {
   const [bulkAmount, setBulkAmount] = useState('50');
   const [bulkDescription, setBulkDescription] = useState('Начисление всем игрокам');
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [pendingBulkAmount, setPendingBulkAmount] = useState<number | null>(null);
 
   const handleOperation = async (type: 'credit' | 'debit') => {
     if (!userId) {
@@ -53,30 +55,30 @@ export function AdminWalletPage() {
     }
   };
 
-  const handleCreditAll = async () => {
+  const requestCreditAll = () => {
     const parsedAmount = Number(bulkAmount);
     if (!Number.isInteger(parsedAmount) || parsedAmount < 1) {
       showToast('Сумма должна быть целым числом не менее 1', 'error');
       return;
     }
+    setPendingBulkAmount(parsedAmount);
+  };
 
-    if (
-      !window.confirm(
-        `Начислить ${parsedAmount} M-коинов каждому из ${players.length} игроков?`,
-      )
-    ) {
+  const handleCreditAll = async () => {
+    if (pendingBulkAmount == null) {
       return;
     }
 
     setBulkSubmitting(true);
     try {
       const result = await creditAllWallets({
-        amount: parsedAmount,
+        amount: pendingBulkAmount,
         description: bulkDescription || 'Начисление всем игрокам',
       });
       showToast(
         `Начислено ${result.amountPerPlayer} × ${result.playerCount} = ${result.totalCredited} M`,
       );
+      setPendingBulkAmount(null);
       await reload();
     } catch (err) {
       showToast(
@@ -121,7 +123,7 @@ export function AdminWalletPage() {
               type="button"
               className="btn btn--primary"
               disabled={bulkSubmitting}
-              onClick={() => void handleCreditAll()}
+              onClick={requestCreditAll}
             >
               {bulkSubmitting ? 'Начисляем…' : 'Начислить всем'}
             </button>
@@ -183,6 +185,23 @@ export function AdminWalletPage() {
           ]}
         />
       </PageState>
+
+      <ConfirmDialog
+        open={pendingBulkAmount !== null}
+        title="Начислить всем"
+        message={
+          pendingBulkAmount != null
+            ? `Начислить ${pendingBulkAmount} M-коинов каждому из ${players.length} игроков?`
+            : ''
+        }
+        confirmLabel={bulkSubmitting ? 'Начисляем…' : 'Начислить'}
+        onCancel={() => {
+          if (!bulkSubmitting) {
+            setPendingBulkAmount(null);
+          }
+        }}
+        onConfirm={() => void handleCreditAll()}
+      />
     </section>
   );
 }

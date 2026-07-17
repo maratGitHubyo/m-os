@@ -76,7 +76,7 @@ export function LorePage() {
       />
 
       <FormCard title="Управление">
-        <div className="admin-actions-row">
+        <div className="admin-actions">
           <button
             type="button"
             className="btn btn--primary"
@@ -87,7 +87,7 @@ export function LorePage() {
           </button>
           <button
             type="button"
-            className="btn"
+            className="btn btn--secondary"
             disabled={submitting}
             onClick={() => void handleSeed()}
           >
@@ -95,7 +95,7 @@ export function LorePage() {
           </button>
         </div>
         {stats && (
-          <p className="muted" style={{ marginTop: '0.75rem' }}>
+          <p className="muted">
             Статус: {stats.loreRevealed ? 'текст открыт владельцам' : 'текст запечатан'}. Найдено{' '}
             {stats.foundCount} из {stats.totalFragments}. С фрагментом: {stats.playersWithLore}, без:{' '}
             {stats.playersWithoutLore}.
@@ -104,7 +104,7 @@ export function LorePage() {
       </FormCard>
 
       <FormCard title="Промокоды для печати">
-        <p className="muted" style={{ marginTop: 0 }}>
+        <p className="muted">
           Распечатайте коды и положите на точки карты (Lor1…Lor8). На карте в приложении коды не
           показываются.
         </p>

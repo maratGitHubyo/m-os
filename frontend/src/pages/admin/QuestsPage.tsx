@@ -12,6 +12,7 @@ import {
 } from '../../api/admin/quests';
 import { listItemTemplates } from '../../api/admin/items';
 import { fetchSessionPlayers } from '../../api/players';
+import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
@@ -48,6 +49,7 @@ export function QuestsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const [broadcastCount, setBroadcastCount] = useState('2');
   const [broadcasting, setBroadcasting] = useState(false);
@@ -199,13 +201,11 @@ export function QuestsPage() {
   };
 
   const handleCloseIncomplete = async () => {
-    if (!window.confirm('Закрыть все незавершённые квесты? Игроки больше не смогут их сдать.')) {
-      return;
-    }
     setClosing(true);
     try {
       const result = await closeIncompleteQuests();
       showToast(`Закрыто активных сдач: ${result.closedPlayerQuests}`);
+      setConfirmClose(false);
       await load();
     } catch (err) {
       showToast(
@@ -284,18 +284,17 @@ export function QuestsPage() {
       <PageHeader
         title="Квесты"
         description="Создавайте задания для всех гостей или для одного игрока."
+        actions={
+          <button
+            type="button"
+            className="btn btn--secondary"
+            disabled={closing}
+            onClick={() => setConfirmClose(true)}
+          >
+            {closing ? 'Закрываем…' : 'Закрыть незавершённые (перед аукционом)'}
+          </button>
+        }
       />
-
-      <div className="admin-actions" style={{ marginBottom: '1rem' }}>
-        <button
-          type="button"
-          className="btn btn--secondary"
-          disabled={closing}
-          onClick={() => void handleCloseIncomplete()}
-        >
-          {closing ? 'Закрываем…' : 'Закрыть незавершённые (перед аукционом)'}
-        </button>
-      </div>
 
       <FormCard title="Рассылка из пула">
         <div className="admin-form-grid">
@@ -320,8 +319,8 @@ export function QuestsPage() {
             </button>
           </div>
 
-          <div className="form-field form-field--wide" style={{ display: 'grid', gap: '0.5rem' }}>
-            <p style={{ margin: 0 }}>
+          <div className="form-field form-field--wide">
+            <p className="muted">
               Авто: каждые {autoStatus?.intervalMinutes ?? 30} мин × {autoStatus?.autoCount ?? 2}{' '}
               задания каждому.{' '}
               {autoStatus?.enabled ? (
@@ -545,20 +544,9 @@ export function QuestsPage() {
               key: 'title',
               header: 'Название',
               render: (row) => (
-                <span>
+                <span className="table-cell-with-badge">
                   {row.title}
-                  {isBroadcastQuest(row) ? (
-                    <span
-                      style={{
-                        marginLeft: '0.5rem',
-                        fontSize: '0.75rem',
-                        opacity: 0.75,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      · рассылка
-                    </span>
-                  ) : null}
+                  {isBroadcastQuest(row) ? <span className="badge">рассылка</span> : null}
                 </span>
               ),
             },
@@ -586,6 +574,20 @@ export function QuestsPage() {
           ]}
         />
       </PageState>
+
+      <ConfirmDialog
+        open={confirmClose}
+        title="Закрыть незавершённые"
+        message="Закрыть все незавершённые квесты? Игроки больше не смогут их сдать."
+        confirmLabel={closing ? 'Закрываем…' : 'Закрыть'}
+        confirmVariant="danger"
+        onCancel={() => {
+          if (!closing) {
+            setConfirmClose(false);
+          }
+        }}
+        onConfirm={() => void handleCloseIncomplete()}
+      />
     </section>
   );
 }

@@ -2,6 +2,7 @@ package com.mos.item.controller;
 
 import com.mos.item.dto.AdminGrantItemRequest;
 import com.mos.item.dto.CreateItemTemplateRequest;
+import com.mos.item.dto.ItemCollectionStatsResponse;
 import com.mos.item.dto.ItemTemplateResponse;
 import com.mos.item.dto.PlayerItemResponse;
 import com.mos.item.service.ItemService;
@@ -35,6 +36,12 @@ public class AdminItemController {
     public List<ItemTemplateResponse> listTemplates() {
         var admin = SecurityUtils.getCurrentUser();
         return itemService.getTemplates(admin.gameSessionId());
+    }
+
+    @GetMapping("/collection-stats")
+    public ItemCollectionStatsResponse collectionStats() {
+        var admin = SecurityUtils.getCurrentUser();
+        return itemService.getCollectionStats(admin.gameSessionId());
     }
 
     @PostMapping("/grant")

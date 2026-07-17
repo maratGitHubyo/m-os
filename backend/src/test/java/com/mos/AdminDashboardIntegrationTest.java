@@ -10,8 +10,10 @@ import com.mos.numbers.repository.CollectibleNumberRepository;
 import com.mos.qrcode.repository.QrCodeRepository;
 import com.mos.quest.enums.QuestDefinitionStatus;
 import com.mos.quest.repository.QuestRepository;
+import com.mos.seed.DachaMapCatalog;
 import com.mos.seed.DemoDataSeeder;
 import com.mos.seed.DemoSeedConstants;
+import com.mos.seed.LoreCatalog;
 import com.mos.seed.PartyItemCatalog;
 import com.mos.session.entity.GameSession;
 import com.mos.session.entity.GameSessionStatus;
@@ -82,9 +84,10 @@ class AdminDashboardIntegrationTest {
         assertThat(userRepository.existsByUsername("katya")).isTrue();
         assertThat(gameSessionRepository.findById(DemoSeedConstants.SESSION_ID).orElseThrow().getName())
                 .isEqualTo(DemoSeedConstants.DEMO_SESSION_NAME);
-        assertThat(locationPointRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID)).isZero();
+        assertThat(locationPointRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID))
+                .isEqualTo(DachaMapCatalog.SPOTS.size());
         assertThat(itemTemplateRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID))
-                .isEqualTo(PartyItemCatalog.ITEMS.size());
+                .isEqualTo(PartyItemCatalog.ITEMS.size() + LoreCatalog.FRAGMENTS.size());
         assertThat(qrCodeRepository.countByGameSessionId(DemoSeedConstants.SESSION_ID))
                 .isEqualTo(PartyItemCatalog.ITEMS.size());
         assertThat(questRepository.countByGameSessionIdAndStatus(
@@ -107,8 +110,9 @@ class AdminDashboardIntegrationTest {
                     // 18 party players (admins excluded from count)
                     .andExpect(jsonPath("$.playersCount").value(18))
                     .andExpect(jsonPath("$.activeQuests").value(0))
-                    .andExpect(jsonPath("$.locationsCount").value(0))
-                    .andExpect(jsonPath("$.itemsCount").value(PartyItemCatalog.ITEMS.size()))
+                    .andExpect(jsonPath("$.locationsCount").value(DachaMapCatalog.SPOTS.size()))
+                    .andExpect(jsonPath("$.itemsCount").value(
+                            PartyItemCatalog.ITEMS.size() + LoreCatalog.FRAGMENTS.size()))
                     .andExpect(jsonPath("$.qrCount").value(PartyItemCatalog.ITEMS.size()))
                     .andExpect(jsonPath("$.leaderboard").isArray());
         } catch (Exception ex) {

@@ -34,6 +34,32 @@ export interface AdminGrantItemRequest {
   itemTemplateId: string;
 }
 
+export interface ItemCollectionTotals {
+  common: number;
+  rare: number;
+  epic: number;
+  legendary: number;
+  total: number;
+  unclaimed: number;
+}
+
+export interface ItemCollectionStatsEntry {
+  rank: number;
+  userId: string;
+  nickname: string;
+  common: number;
+  rare: number;
+  epic: number;
+  legendary: number;
+  total: number;
+}
+
+export interface ItemCollectionStatsResponse {
+  players: ItemCollectionStatsEntry[];
+  collected: ItemCollectionTotals;
+  catalog: ItemCollectionTotals;
+}
+
 export interface CreateLocationRequest {
   name: string;
   description: string;
@@ -110,7 +136,7 @@ export interface CreatePlayerSecretRequest {
 
 export interface PlayerSecretInfo {
   id: string;
-  userId: string;
+  userId: string | null;
   gameSessionId: string;
   code: string;
   title: string;
@@ -119,6 +145,40 @@ export interface PlayerSecretInfo {
   rewardPayload: Record<string, unknown> | null;
   used: boolean;
   usedAt: string | null;
+  isShared?: boolean;
+}
+
+export interface LoreFragmentStatsEntry {
+  templateId: string | null;
+  name: string;
+  code: string;
+  found: boolean;
+  ownerUserId: string | null;
+  ownerNickname: string | null;
+}
+
+export interface LoreStatsResponse {
+  loreRevealed: boolean;
+  totalFragments: number;
+  foundCount: number;
+  unfoundCount: number;
+  playersWithLore: number;
+  playersWithoutLore: number;
+  fragments: LoreFragmentStatsEntry[];
+}
+
+export interface LoreRevealResponse {
+  loreRevealed: boolean;
+}
+
+export interface LoreSeedResponse {
+  loreRevealed: boolean;
+  templatesCreated: number;
+  templatesExisting: number;
+  secretsCreated: number;
+  secretsExisting: number;
+  locationsUpdated: number;
+  codes: string[];
 }
 
 export interface CreateCollectibleNumberRequest {

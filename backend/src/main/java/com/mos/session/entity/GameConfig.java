@@ -17,6 +17,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -65,6 +66,17 @@ public class GameConfig {
     @Column(name = "auction_mode_enabled", nullable = false)
     @Builder.Default
     private Boolean auctionModeEnabled = false;
+
+    @Column(name = "lore_revealed", nullable = false)
+    @Builder.Default
+    private Boolean loreRevealed = false;
+
+    @Column(name = "quest_auto_distribute_enabled", nullable = false)
+    @Builder.Default
+    private Boolean questAutoDistributeEnabled = false;
+
+    @Column(name = "quest_auto_last_distributed_at")
+    private Instant questAutoLastDistributedAt;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "custom_settings", nullable = false, columnDefinition = "jsonb")

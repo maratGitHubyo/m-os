@@ -13,11 +13,15 @@ public record TradeItemResponse(
 ) {
 
     public static TradeItemResponse from(TradeItem tradeItem) {
+        return from(tradeItem, true);
+    }
+
+    public static TradeItemResponse from(TradeItem tradeItem, boolean revealLoreDescription) {
         return new TradeItemResponse(
                 tradeItem.getId(),
                 tradeItem.getPlayerItem().getId(),
                 tradeItem.getOwnerId(),
-                ItemTemplateResponse.from(tradeItem.getPlayerItem().getItemTemplate())
+                ItemTemplateResponse.from(tradeItem.getPlayerItem().getItemTemplate(), revealLoreDescription)
         );
     }
 }

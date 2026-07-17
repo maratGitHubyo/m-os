@@ -3,10 +3,11 @@ package com.mos.trade.service;
 import com.mos.auction.service.AuctionModeService;
 import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
-import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.BusinessException;
+import com.mos.common.exception.InsufficientBalanceException;
 import com.mos.common.exception.ItemNotFoundException;
 import com.mos.common.exception.ItemSessionMismatchException;
+import com.mos.common.exception.LoreTradeLimitException;
 import com.mos.common.exception.TradeInsufficientCoinsException;
 import com.mos.common.exception.TradeInvalidStateException;
 import com.mos.common.exception.TradeItemNotOwnedException;
@@ -33,8 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -77,6 +80,7 @@ public class TradeService {
         validateItemOwnership(initiatorItemIds, initiatorId, gameSessionId);
         validateItemOwnership(receiverItemIds, receiverId, gameSessionId);
         ensureSufficientCoins(initiatorId, gameSessionId, initiatorCoins);
+        ensureLoreTradeLimit(initiatorId, receiverId, initiatorItemIds, receiverItemIds, gameSessionId);
 
         Trade trade = tradeRepository.save(Trade.builder()
                 .gameSessionId(gameSessionId)
@@ -126,6 +130,7 @@ public class TradeService {
 
         validateTradeItemsOwnership(items, gameSessionId);
         validateTradeCoinsBalances(coins, gameSessionId);
+        ensureLoreTradeLimitFromTradeItems(trade, items, gameSessionId);
 
         for (TradeItem tradeItem : items) {
             UUID fromUserId = tradeItem.getOwnerId();
@@ -308,6 +313,63 @@ public class TradeService {
         }
     }
 
+    private void ensureLoreTradeLimit(
+            UUID initiatorId,
+            UUID receiverId,
+            List<UUID> initiatorItemIds,
+            List<UUID> receiverItemIds,
+            UUID gameSessionId
+    ) {
+        Set<UUID> initiatorOffered = new HashSet<>(initiatorItemIds);
+        Set<UUID> receiverOffered = new HashSet<>(receiverItemIds);
+
+        long initiatorKeeps = countKeptLore(initiatorId, gameSessionId, initiatorOffered);
+        long receiverKeeps = countKeptLore(receiverId, gameSessionId, receiverOffered);
+        long initiatorGains = countOfferedLore(receiverItemIds, gameSessionId);
+        long receiverGains = countOfferedLore(initiatorItemIds, gameSessionId);
+
+        if (initiatorKeeps + initiatorGains > 1 || receiverKeeps + receiverGains > 1) {
+            throw new LoreTradeLimitException();
+        }
+    }
+
+    private void ensureLoreTradeLimitFromTradeItems(Trade trade, List<TradeItem> items, UUID gameSessionId) {
+        List<UUID> initiatorItemIds = new ArrayList<>();
+        List<UUID> receiverItemIds = new ArrayList<>();
+        for (TradeItem tradeItem : items) {
+            if (tradeItem.getOwnerId().equals(trade.getInitiatorId())) {
+                initiatorItemIds.add(tradeItem.getPlayerItem().getId());
+            } else {
+                receiverItemIds.add(tradeItem.getPlayerItem().getId());
+            }
+        }
+        ensureLoreTradeLimit(
+                trade.getInitiatorId(),
+                trade.getReceiverId(),
+                initiatorItemIds,
+                receiverItemIds,
+                gameSessionId
+        );
+    }
+
+    private long countKeptLore(UUID ownerId, UUID gameSessionId, Set<UUID> offeredItemIds) {
+        return itemService.findLoreItemsByOwner(ownerId, gameSessionId).stream()
+                .filter(item -> !offeredItemIds.contains(item.getId()))
+                .count();
+    }
+
+    private long countOfferedLore(List<UUID> playerItemIds, UUID gameSessionId) {
+        long count = 0;
+        for (UUID playerItemId : playerItemIds) {
+            PlayerItem playerItem = playerItemRepository.findByIdAndGameSessionId(playerItemId, gameSessionId)
+                    .orElseThrow(ItemNotFoundException::new);
+            if (Boolean.TRUE.equals(playerItem.getItemTemplate().getIsLore())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private void ensureSufficientCoins(UUID userId, UUID gameSessionId, long amount) {
         if (amount <= 0) {
             return;
@@ -347,7 +409,7 @@ public class TradeService {
     private TradeResponse toResponse(Trade trade) {
         List<TradeItem> items = tradeItemRepository.findByTradeIdWithItems(trade.getId());
         List<TradeCoin> coins = tradeCoinRepository.findByTradeId(trade.getId());
-        return TradeResponse.from(trade, items, coins);
+        return TradeResponse.from(trade, items, coins, itemService.isLoreRevealed(trade.getGameSessionId()));
     }
 
     private List<UUID> normalizeIds(List<UUID> ids) {

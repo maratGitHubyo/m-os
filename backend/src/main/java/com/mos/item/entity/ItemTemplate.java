@@ -52,6 +52,10 @@ public class ItemTemplate {
     @Builder.Default
     private Boolean isUnique = false;
 
+    @Column(name = "is_lore", nullable = false)
+    @Builder.Default
+    private Boolean isLore = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -62,6 +66,9 @@ public class ItemTemplate {
         }
         if (isUnique == null) {
             isUnique = false;
+        }
+        if (isLore == null) {
+            isLore = false;
         }
     }
 }

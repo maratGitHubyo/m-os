@@ -242,7 +242,7 @@ class ItemIntegrationTest {
     private UUID createTemplateQuietly(String name, boolean isUnique) {
         return itemService.createTemplate(
                 GAME_SESSION_ID,
-                new com.mos.item.dto.CreateItemTemplateRequest(name, "Test item", null, ItemRarity.RARE, isUnique)
+                new com.mos.item.dto.CreateItemTemplateRequest(name, "Test item", null, ItemRarity.RARE, isUnique, false)
         ).id();
     }
 

@@ -4,19 +4,25 @@ import com.mos.common.audit.enums.AuditAction;
 import com.mos.common.audit.service.AuditService;
 import com.mos.common.exception.BusinessException;
 import com.mos.common.exception.InvalidSecretRewardException;
+import com.mos.common.exception.LoreFragmentAlreadyFoundException;
 import com.mos.common.exception.SecretAlreadyUsedException;
 import com.mos.common.exception.SecretNotFoundException;
 import com.mos.common.exception.SecretNotOwnedException;
 import com.mos.common.exception.SecretRewardNotImplementedException;
 import com.mos.item.dto.PlayerItemResponse;
+import com.mos.item.entity.ItemTemplate;
 import com.mos.item.enums.ItemAcquisitionSource;
+import com.mos.item.repository.ItemTemplateRepository;
 import com.mos.item.service.ItemService;
+import com.mos.location.service.LocationService;
 import com.mos.secret.dto.CreatePlayerSecretRequest;
+import com.mos.secret.dto.CreateSharedSecretRequest;
 import com.mos.secret.dto.PlayerSecretResponse;
 import com.mos.secret.dto.SecretRedeemResponse;
 import com.mos.secret.entity.PlayerSecret;
 import com.mos.secret.enums.SecretRewardType;
 import com.mos.secret.repository.PlayerSecretRepository;
+import com.mos.seed.DachaMapCatalog;
 import com.mos.session.repository.SessionParticipantRepository;
 import com.mos.wallet.enums.CoinTransactionType;
 import com.mos.wallet.service.WalletService;
@@ -37,6 +43,8 @@ public class PlayerSecretService {
     private final SessionParticipantRepository sessionParticipantRepository;
     private final WalletService walletService;
     private final ItemService itemService;
+    private final ItemTemplateRepository itemTemplateRepository;
+    private final LocationService locationService;
     private final AuditService auditService;
 
     @Transactional
@@ -55,6 +63,29 @@ public class PlayerSecretService {
                 .description(request.description())
                 .rewardType(request.rewardType())
                 .rewardPayload(request.rewardPayload() != null ? new HashMap<>(request.rewardPayload()) : new HashMap<>())
+                .isShared(false)
+                .build());
+
+        validateRewardPayload(secret);
+
+        return PlayerSecretResponse.from(secret);
+    }
+
+    @Transactional
+    public PlayerSecretResponse createSharedSecret(UUID gameSessionId, CreateSharedSecretRequest request) {
+        if (playerSecretRepository.existsByCodeAndGameSessionId(request.code(), gameSessionId)) {
+            throw new BusinessException("Secret code already exists in this game session");
+        }
+
+        PlayerSecret secret = playerSecretRepository.save(PlayerSecret.builder()
+                .userId(null)
+                .gameSessionId(gameSessionId)
+                .code(request.code())
+                .title(request.title())
+                .description(request.description())
+                .rewardType(request.rewardType())
+                .rewardPayload(request.rewardPayload() != null ? new HashMap<>(request.rewardPayload()) : new HashMap<>())
+                .isShared(true)
                 .build());
 
         validateRewardPayload(secret);
@@ -64,14 +95,21 @@ public class PlayerSecretService {
 
     @Transactional
     public SecretRedeemResponse redeemSecret(UUID userId, UUID gameSessionId, String code) {
+        ensureParticipant(userId, gameSessionId);
+
         PlayerSecret secret = playerSecretRepository.findByCodeAndGameSessionIdForUpdate(code, gameSessionId)
                 .orElseThrow(SecretNotFoundException::new);
 
-        if (!secret.getUserId().equals(userId)) {
-            throw new SecretNotOwnedException();
+        if (!Boolean.TRUE.equals(secret.getIsShared())) {
+            if (secret.getUserId() == null || !secret.getUserId().equals(userId)) {
+                throw new SecretNotOwnedException();
+            }
         }
 
         if (Boolean.TRUE.equals(secret.getUsed())) {
+            if (Boolean.TRUE.equals(secret.getIsShared()) && isLoreItemSecret(secret)) {
+                throw new LoreFragmentAlreadyFoundException();
+            }
             throw new SecretAlreadyUsedException();
         }
 
@@ -86,10 +124,15 @@ public class PlayerSecretService {
         secret.setUsedAt(Instant.now());
         playerSecretRepository.save(secret);
 
+        if (Boolean.TRUE.equals(secret.getIsShared()) && isLoreItemSecret(secret)) {
+            removeLoreMapSpot(gameSessionId, secret.getCode(), userId);
+        }
+
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("secretId", secret.getId().toString());
         metadata.put("code", secret.getCode());
         metadata.put("rewardType", secret.getRewardType().name());
+        metadata.put("isShared", Boolean.TRUE.equals(secret.getIsShared()));
         if (coinAmount != null) {
             metadata.put("coinAmount", coinAmount);
         }
@@ -114,6 +157,20 @@ public class PlayerSecretService {
                 secret.getRewardType(),
                 coinAmount,
                 grantedItem
+        );
+    }
+
+    private void removeLoreMapSpot(UUID gameSessionId, String loreCode, UUID performedByUserId) {
+        String spotName = DachaMapCatalog.SPOTS.stream()
+                .filter(spot -> spot.loreCode().equalsIgnoreCase(loreCode))
+                .map(DachaMapCatalog.MapSpot::name)
+                .findFirst()
+                .orElse(null);
+        if (spotName == null) {
+            return;
+        }
+        locationService.findByName(gameSessionId, spotName).ifPresent(location ->
+                locationService.deleteLocation(location.getId(), gameSessionId, performedByUserId)
         );
     }
 
@@ -215,6 +272,21 @@ public class PlayerSecretService {
             return UUID.fromString(questValue.toString());
         } catch (IllegalArgumentException ex) {
             throw new InvalidSecretRewardException("Invalid questId in reward payload");
+        }
+    }
+
+    private boolean isLoreItemSecret(PlayerSecret secret) {
+        if (secret.getRewardType() != SecretRewardType.ITEM) {
+            return false;
+        }
+        try {
+            UUID templateId = extractItemTemplateId(secret.getRewardPayload());
+            return itemTemplateRepository.findById(templateId)
+                    .map(ItemTemplate::getIsLore)
+                    .map(Boolean.TRUE::equals)
+                    .orElse(false);
+        } catch (RuntimeException ex) {
+            return false;
         }
     }
 }

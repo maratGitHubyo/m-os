@@ -13,6 +13,7 @@ import com.mos.session.entity.ParticipantRole;
 import com.mos.session.entity.SessionParticipant;
 import com.mos.session.repository.GameConfigRepository;
 import com.mos.session.repository.SessionParticipantRepository;
+import com.mos.wallet.dto.AdminBulkCreditResponse;
 import com.mos.wallet.dto.CoinTransactionResponse;
 import com.mos.wallet.dto.LeaderboardEntryResponse;
 import com.mos.wallet.dto.WalletResponse;
@@ -118,6 +119,50 @@ public class WalletService {
         return CoinTransactionResponse.from(
                 applyBalanceChange(targetUserId, gameSessionId, -amount, CoinTransactionType.ADMIN, description, adminUserId, AuditAction.COIN_DEBIT)
         );
+    }
+
+    @Transactional
+    public AdminBulkCreditResponse adminCreditAll(
+            UUID gameSessionId,
+            Long amount,
+            String description,
+            UUID adminUserId
+    ) {
+        validateAmount(amount);
+        String desc = description != null && !description.isBlank()
+                ? description
+                : "Начисление всем игрокам";
+
+        List<SessionParticipant> players = sessionParticipantRepository
+                .findByGameSessionIdAndRole(gameSessionId, ParticipantRole.PLAYER);
+
+        for (SessionParticipant participant : players) {
+            applyBalanceChange(
+                    participant.getUser().getId(),
+                    gameSessionId,
+                    amount,
+                    CoinTransactionType.ADMIN,
+                    desc,
+                    adminUserId,
+                    AuditAction.COIN_CREDIT
+            );
+        }
+
+        auditService.log(
+                adminUserId,
+                gameSessionId,
+                AuditAction.ADMIN_ACTION,
+                "Wallet",
+                gameSessionId.toString(),
+                "Bulk credit " + amount + " to " + players.size() + " player(s)",
+                Map.of(
+                        "amountPerPlayer", amount,
+                        "playerCount", players.size(),
+                        "totalCredited", amount * players.size()
+                )
+        );
+
+        return new AdminBulkCreditResponse(players.size(), amount, amount * players.size());
     }
 
     @Transactional

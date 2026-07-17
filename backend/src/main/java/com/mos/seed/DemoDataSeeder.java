@@ -1,15 +1,21 @@
 package com.mos.seed;
 
 import com.mos.item.dto.CreateItemTemplateRequest;
+import com.mos.item.entity.ItemTemplate;
 import com.mos.item.repository.ItemTemplateRepository;
 import com.mos.item.service.ItemService;
+import com.mos.location.dto.CreateLocationRequest;
 import com.mos.location.repository.LocationPointRepository;
+import com.mos.location.service.LocationService;
+import com.mos.lore.service.LoreService;
 import com.mos.qrcode.dto.CreateQrCodeRequest;
+import com.mos.qrcode.entity.QrCode;
 import com.mos.qrcode.enums.QrRewardType;
 import com.mos.qrcode.enums.QrScanPolicy;
 import com.mos.qrcode.repository.QrCodeRepository;
 import com.mos.qrcode.service.QrCodeService;
 import com.mos.quest.repository.QuestRepository;
+import com.mos.secret.repository.PlayerSecretRepository;
 import com.mos.session.entity.GameSession;
 import com.mos.session.entity.GameSessionStatus;
 import com.mos.session.entity.ParticipantRole;
@@ -32,7 +38,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Profile("dev")
@@ -53,6 +61,9 @@ public class DemoDataSeeder {
     private final ItemService itemService;
     private final QrCodeService qrCodeService;
     private final QuestRepository questRepository;
+    private final LoreService loreService;
+    private final LocationService locationService;
+    private final PlayerSecretRepository playerSecretRepository;
 
     @Transactional
     public void seedDemoData() {
@@ -73,46 +84,167 @@ public class DemoDataSeeder {
         }
 
         UUID sessionId = DemoSeedConstants.SESSION_ID;
-        removeDefaultDemoItems(sessionId);
         removeDefaultDemoQuests(sessionId);
         removeDefaultDemoLocations(sessionId);
-        removeLegacyDemoQr(sessionId);
+        removeNonPartyItemsAndQr(sessionId);
 
         prepareFreshDemoSession();
         seedPartyItemsAndQr(sessionId);
+        loreService.seedLore(sessionId);
+        seedMapSpots(sessionId);
 
-        log.info("M-OS seed complete: {} players, {} item templates",
+        log.info("M-OS seed complete: {} players, {} item templates, {} QR codes, {} locations",
                 players.size(),
-                itemTemplateRepository.countByGameSessionId(sessionId));
+                itemTemplateRepository.countByGameSessionId(sessionId),
+                qrCodeRepository.countByGameSessionId(sessionId),
+                locationPointRepository.countByGameSessionId(sessionId));
+    }
+
+    private void seedMapSpots(UUID sessionId) {
+        int created = 0;
+        int updated = 0;
+        for (DachaMapCatalog.MapSpot spot : DachaMapCatalog.SPOTS) {
+            var existing = locationPointRepository.findByGameSessionIdAndName(sessionId, spot.name());
+            if (existing.isPresent()) {
+                var location = existing.get();
+                boolean dirty = false;
+                if (!spot.description().equals(location.getDescription())) {
+                    location.setDescription(spot.description());
+                    dirty = true;
+                }
+                if (Double.compare(location.getX(), spot.x()) != 0) {
+                    location.setX(spot.x());
+                    dirty = true;
+                }
+                if (Double.compare(location.getY(), spot.y()) != 0) {
+                    location.setY(spot.y());
+                    dirty = true;
+                }
+                if (!spot.zone().equals(location.getZone())) {
+                    location.setZone(spot.zone());
+                    dirty = true;
+                }
+                if (!Boolean.valueOf(spot.hidden()).equals(location.getHidden())) {
+                    location.setHidden(spot.hidden());
+                    dirty = true;
+                }
+                if (dirty) {
+                    locationPointRepository.save(location);
+                    updated++;
+                }
+                continue;
+            }
+
+            // Don't recreate a spot if its lore promo was already claimed
+            boolean loreAlreadyClaimed = playerSecretRepository
+                    .findByCodeAndGameSessionId(spot.loreCode(), sessionId)
+                    .map(secret -> Boolean.TRUE.equals(secret.getUsed()))
+                    .orElse(false);
+            if (loreAlreadyClaimed) {
+                continue;
+            }
+            locationService.createLocation(sessionId, new CreateLocationRequest(
+                    spot.name(),
+                    spot.description(),
+                    spot.x(),
+                    spot.y(),
+                    spot.zone(),
+                    spot.hidden()
+            ));
+            created++;
+        }
+        if (created > 0 || updated > 0) {
+            log.info("Map spots sync: created={}, updated={}", created, updated);
+        }
     }
 
     private void seedPartyItemsAndQr(UUID sessionId) {
         for (PartyItemCatalog.SeedItem item : PartyItemCatalog.ITEMS) {
-            if (qrCodeRepository.existsByCodeAndGameSessionId(item.qrCode(), sessionId)) {
-                continue;
+            ItemTemplate template = itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
+                    .filter(existing -> existing.getName().equals(item.name()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (template == null) {
+                template = itemTemplateRepository.findById(
+                        itemService.createTemplate(sessionId, new CreateItemTemplateRequest(
+                                item.name(),
+                                item.description(),
+                                item.imageUrl(),
+                                item.rarity(),
+                                true,
+                                false
+                        )).id()
+                ).orElseThrow();
+            } else {
+                boolean dirty = false;
+                if (!item.imageUrl().equals(template.getImageUrl())) {
+                    template.setImageUrl(item.imageUrl());
+                    dirty = true;
+                }
+                if (!item.description().equals(template.getDescription())) {
+                    template.setDescription(item.description());
+                    dirty = true;
+                }
+                if (template.getRarity() != item.rarity()) {
+                    template.setRarity(item.rarity());
+                    dirty = true;
+                }
+                if (!Boolean.TRUE.equals(template.getIsUnique())) {
+                    template.setIsUnique(true);
+                    dirty = true;
+                }
+                if (dirty) {
+                    itemTemplateRepository.save(template);
+                }
             }
 
-            UUID templateId = itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
-                    .filter(template -> template.getName().equals(item.name()))
-                    .map(template -> template.getId())
-                    .findFirst()
-                    .orElseGet(() -> itemService.createTemplate(sessionId, new CreateItemTemplateRequest(
-                            item.name(),
-                            item.description(),
-                            item.imageUrl(),
-                            item.rarity(),
-                            true
-                    )).id());
+            if (!qrCodeRepository.existsByCodeAndGameSessionId(item.qrCode(), sessionId)) {
+                qrCodeService.createQrCode(sessionId, new CreateQrCodeRequest(
+                        item.qrCode(),
+                        item.name(),
+                        null,
+                        QrRewardType.ITEM,
+                        Map.of("itemTemplateId", template.getId().toString()),
+                        QrScanPolicy.FIRST_PLAYER,
+                        null
+                ));
+            }
+        }
+    }
 
-            qrCodeService.createQrCode(sessionId, new CreateQrCodeRequest(
-                    item.qrCode(),
-                    item.name(),
-                    null,
-                    QrRewardType.ITEM,
-                    Map.of("itemTemplateId", templateId.toString()),
-                    QrScanPolicy.FIRST_PLAYER,
-                    null
-            ));
+    private void removeNonPartyItemsAndQr(UUID sessionId) {
+        Set<String> partyNames = PartyItemCatalog.ITEMS.stream()
+                .map(PartyItemCatalog.SeedItem::name)
+                .collect(Collectors.toSet());
+        Set<String> loreNames = LoreCatalog.FRAGMENTS.stream()
+                .map(LoreCatalog.LoreFragment::name)
+                .collect(Collectors.toSet());
+        Set<String> keepNames = new java.util.HashSet<>(partyNames);
+        keepNames.addAll(loreNames);
+
+        Set<String> partyQrCodes = PartyItemCatalog.ITEMS.stream()
+                .map(PartyItemCatalog.SeedItem::qrCode)
+                .collect(Collectors.toSet());
+        Set<String> loreCodes = LoreCatalog.FRAGMENTS.stream()
+                .map(LoreCatalog.LoreFragment::code)
+                .collect(Collectors.toSet());
+
+        List<QrCode> obsoleteQr = qrCodeRepository.findByGameSessionIdOrderByCreatedAtAsc(sessionId).stream()
+                .filter(qr -> !partyQrCodes.contains(qr.getCode()) && !loreCodes.contains(qr.getCode()))
+                .toList();
+        if (!obsoleteQr.isEmpty()) {
+            qrCodeRepository.deleteAll(obsoleteQr);
+            log.info("Removed {} obsolete QR codes", obsoleteQr.size());
+        }
+
+        List<ItemTemplate> obsoleteItems = itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
+                .filter(template -> !keepNames.contains(template.getName())
+                        && !Boolean.TRUE.equals(template.getIsLore()))
+                .toList();
+        if (!obsoleteItems.isEmpty()) {
+            itemTemplateRepository.deleteAll(obsoleteItems);
+            log.info("Removed {} obsolete item templates", obsoleteItems.size());
         }
     }
 
@@ -139,6 +271,7 @@ public class DemoDataSeeder {
 
         gameConfigRepository.findByGameSessionId(DemoSeedConstants.SESSION_ID).ifPresent(config -> {
             config.setLeaderboardEnabled(true);
+            config.setLoreRevealed(false);
             gameConfigRepository.save(config);
         });
     }
@@ -181,13 +314,6 @@ public class DemoDataSeeder {
                 .build());
     }
 
-    private void removeDefaultDemoItems(UUID sessionId) {
-        var demoNames = List.of("Bronze Key", "Explorer Badge", "Magic Token");
-        itemTemplateRepository.findByGameSessionIdOrderByNameAsc(sessionId).stream()
-                .filter(template -> demoNames.contains(template.getName()))
-                .forEach(itemTemplateRepository::delete);
-    }
-
     private void removeDefaultDemoQuests(UUID sessionId) {
         var demoTitles = List.of(
                 "Удивить именинника",
@@ -205,13 +331,6 @@ public class DemoDataSeeder {
         locationPointRepository.findByGameSessionIdOrderByZoneAscNameAsc(sessionId).stream()
                 .filter(location -> demoNames.contains(location.getName()))
                 .forEach(locationPointRepository::delete);
-    }
-
-    private void removeLegacyDemoQr(UUID sessionId) {
-        for (String code : List.of("QR-COIN", "QR-ITEM", "QR-LOCATION")) {
-            qrCodeRepository.findByCodeAndGameSessionId(code, sessionId)
-                    .ifPresent(qrCodeRepository::delete);
-        }
     }
 
     private void ensureStartingBalance(User player, UUID adminId) {

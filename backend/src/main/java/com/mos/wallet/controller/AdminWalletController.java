@@ -1,16 +1,17 @@
 package com.mos.wallet.controller;
 
 import com.mos.security.SecurityUtils;
+import com.mos.wallet.dto.AdminBulkCreditResponse;
 import com.mos.wallet.dto.AdminWalletOperationRequest;
 import com.mos.wallet.dto.CoinTransactionResponse;
 import com.mos.wallet.service.WalletService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -22,6 +23,17 @@ import java.util.UUID;
 public class AdminWalletController {
 
     private final WalletService walletService;
+
+    @PostMapping("/credit-all")
+    public AdminBulkCreditResponse creditAll(@Valid @RequestBody AdminWalletOperationRequest request) {
+        var admin = SecurityUtils.getCurrentUser();
+        return walletService.adminCreditAll(
+                admin.gameSessionId(),
+                request.amount(),
+                request.description(),
+                admin.userId()
+        );
+    }
 
     @PostMapping("/{userId}/credit")
     public CoinTransactionResponse credit(

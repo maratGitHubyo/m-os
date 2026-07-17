@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { createItemTemplate, grantItem } from '../../api/admin/items';
+import { useEffect, useState } from 'react';
+import { createItemTemplate, grantItem, listItemTemplates } from '../../api/admin/items';
 import { DataTable } from '../../components/admin/DataTable';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
@@ -14,6 +14,7 @@ const rarities: ItemTemplate['rarity'][] = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY
 export function ItemsPage() {
   const { players } = useAdminPlayers();
   const [templates, setTemplates] = useState<ItemTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -22,6 +23,28 @@ export function ItemsPage() {
   const [grantUserId, setGrantUserId] = useState('');
   const [grantTemplateId, setGrantTemplateId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const reloadTemplates = async () => {
+    const list = await listItemTemplates();
+    setTemplates(list);
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        await reloadTemplates();
+      } catch (err) {
+        showToast(
+          err instanceof Error ? translateError(err.message) : 'Не удалось загрузить предметы',
+          'error',
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
+  }, []);
 
   const handleCreateTemplate = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -73,7 +96,7 @@ export function ItemsPage() {
     <section>
       <PageHeader
         title="Предметы"
-        description="Создание шаблонов предметов и выдача игрокам. Список показывает шаблоны, созданные в этой сессии браузера (нет API списка)."
+        description="Шаблоны предметов сессии. Картинки из /items используются в инвентаре игроков."
       />
 
       <FormCard title="Создать шаблон">
@@ -150,14 +173,26 @@ export function ItemsPage() {
         </form>
       </FormCard>
 
-      <h2 className="section-title">Шаблоны (сессия)</h2>
-      {templates.length === 0 ? (
+      <h2 className="section-title">Шаблоны ({templates.length})</h2>
+      {loading ? (
+        <p className="empty-state">Загрузка…</p>
+      ) : templates.length === 0 ? (
         <p className="empty-state">В этой сессии пока нет шаблонов.</p>
       ) : (
         <DataTable
           rows={templates}
           rowKey={(row) => row.id}
           columns={[
+            {
+              key: 'image',
+              header: 'Фото',
+              render: (row) =>
+                row.imageUrl ? (
+                  <img className="item-thumb" src={row.imageUrl} alt={row.name} />
+                ) : (
+                  '—'
+                ),
+            },
             { key: 'name', header: 'Название', render: (row) => row.name },
             {
               key: 'rarity',
@@ -165,7 +200,6 @@ export function ItemsPage() {
               render: (row) => formatEnum(row.rarity, itemRarity),
             },
             { key: 'unique', header: 'Уникальный', render: (row) => (row.isUnique ? 'Да' : 'Нет') },
-            { key: 'id', header: 'ID', render: (row) => <span className="mono">{row.id}</span> },
           ]}
         />
       )}

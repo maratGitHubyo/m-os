@@ -36,7 +36,7 @@ public class PlayerSecret {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private UUID userId;
 
     @Column(name = "game_session_id", nullable = false)
@@ -60,6 +60,10 @@ public class PlayerSecret {
     @Builder.Default
     private Map<String, Object> rewardPayload = new HashMap<>();
 
+    @Column(name = "is_shared", nullable = false)
+    @Builder.Default
+    private Boolean isShared = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean used = false;
@@ -77,6 +81,9 @@ public class PlayerSecret {
         }
         if (used == null) {
             used = false;
+        }
+        if (isShared == null) {
+            isShared = false;
         }
         if (rewardPayload == null) {
             rewardPayload = new HashMap<>();

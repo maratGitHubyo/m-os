@@ -9,6 +9,7 @@ public record CreateItemTemplateRequest(
         @NotBlank String description,
         String imageUrl,
         @NotNull ItemRarity rarity,
-        @NotNull Boolean isUnique
+        @NotNull Boolean isUnique,
+        Boolean isLore
 ) {
 }

@@ -14,6 +14,7 @@ public record GameConfigResponse(
         Boolean secretsEnabled,
         Boolean leaderboardEnabled,
         Boolean auctionModeEnabled,
+        Boolean loreRevealed,
         Map<String, Object> customSettings
 ) {
 
@@ -27,6 +28,7 @@ public record GameConfigResponse(
                 config.getSecretsEnabled(),
                 config.getLeaderboardEnabled(),
                 config.getAuctionModeEnabled(),
+                config.getLoreRevealed(),
                 config.getCustomSettings()
         );
     }

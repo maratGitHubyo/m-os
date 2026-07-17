@@ -21,3 +21,18 @@ export async function debitWallet(
     body: JSON.stringify(request),
   });
 }
+
+export interface AdminBulkCreditResponse {
+  playerCount: number;
+  amountPerPlayer: number;
+  totalCredited: number;
+}
+
+export async function creditAllWallets(
+  request: AdminWalletOperationRequest,
+): Promise<AdminBulkCreditResponse> {
+  return apiFetch<AdminBulkCreditResponse>('/api/admin/wallet/credit-all', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}

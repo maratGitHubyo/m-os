@@ -22,13 +22,22 @@ public record TradeResponse(
 ) {
 
     public static TradeResponse from(Trade trade, List<TradeItem> items, List<TradeCoin> coins) {
+        return from(trade, items, coins, true);
+    }
+
+    public static TradeResponse from(
+            Trade trade,
+            List<TradeItem> items,
+            List<TradeCoin> coins,
+            boolean revealLoreDescription
+    ) {
         return new TradeResponse(
                 trade.getId(),
                 trade.getGameSessionId(),
                 trade.getInitiatorId(),
                 trade.getReceiverId(),
                 trade.getStatus(),
-                items.stream().map(TradeItemResponse::from).toList(),
+                items.stream().map(item -> TradeItemResponse.from(item, revealLoreDescription)).toList(),
                 coins.stream().map(TradeCoinResponse::from).toList(),
                 trade.getCreatedAt(),
                 trade.getUpdatedAt()

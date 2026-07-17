@@ -48,6 +48,12 @@ const ERROR_MESSAGES: Record<string, string> = {
     'Лот в недопустимом статусе для этой операции',
   'Bid amount is too low': 'Ставка слишком низкая',
   'Cannot sell a lot with no bids': 'Нельзя продать лот без ставок',
+  'This lore fragment has already been found': 'Этот фрагмент уже найден',
+  'You already have a lore fragment. Sell, trade, or give it to another player to take a new one.':
+    'У тебя уже есть фрагмент лора. Продай, обменяй или отдай его другому игроку, чтобы взять новый.',
+  'A player can hold only one lore fragment at a time':
+    'У игрока может быть только один фрагмент лора. Обменяйте или отдайте текущий, чтобы получить другой.',
+  'Unique item already exists in this game session': 'Этот уникальный предмет уже найден в сессии',
 };
 
 export function translateError(message: string): string {

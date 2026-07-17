@@ -29,6 +29,7 @@ export interface GameConfig {
   secretsEnabled: boolean;
   leaderboardEnabled: boolean;
   auctionModeEnabled: boolean;
+  loreRevealed: boolean;
 }
 
 export interface GameSessionInfo extends Session {
@@ -118,6 +119,7 @@ export interface ItemTemplate {
   imageUrl: string | null;
   rarity: ItemRarity;
   isUnique: boolean;
+  isLore?: boolean;
   createdAt: string;
 }
 

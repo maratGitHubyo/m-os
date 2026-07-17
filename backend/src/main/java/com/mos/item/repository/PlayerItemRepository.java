@@ -25,6 +25,38 @@ public interface PlayerItemRepository extends JpaRepository<PlayerItem, UUID> {
     boolean existsByItemTemplateIdAndGameSessionId(UUID itemTemplateId, UUID gameSessionId);
 
     @Query("""
+            SELECT CASE WHEN COUNT(pi) > 0 THEN true ELSE false END
+            FROM PlayerItem pi
+            WHERE pi.ownerId = :ownerId
+              AND pi.gameSessionId = :gameSessionId
+              AND pi.itemTemplate.isLore = true
+            """)
+    boolean existsLoreItemByOwner(
+            @Param("ownerId") UUID ownerId,
+            @Param("gameSessionId") UUID gameSessionId
+    );
+
+    @Query("""
+            SELECT pi FROM PlayerItem pi
+            JOIN FETCH pi.itemTemplate
+            WHERE pi.ownerId = :ownerId
+              AND pi.gameSessionId = :gameSessionId
+              AND pi.itemTemplate.isLore = true
+            """)
+    List<PlayerItem> findLoreItemsByOwner(
+            @Param("ownerId") UUID ownerId,
+            @Param("gameSessionId") UUID gameSessionId
+    );
+
+    @Query("""
+            SELECT pi FROM PlayerItem pi
+            JOIN FETCH pi.itemTemplate
+            WHERE pi.gameSessionId = :gameSessionId
+              AND pi.itemTemplate.isLore = true
+            """)
+    List<PlayerItem> findLoreItemsByGameSessionId(@Param("gameSessionId") UUID gameSessionId);
+
+    @Query("""
             SELECT pi FROM PlayerItem pi
             JOIN FETCH pi.itemTemplate
             WHERE pi.id = :id AND pi.gameSessionId = :gameSessionId
@@ -44,4 +76,13 @@ public interface PlayerItemRepository extends JpaRepository<PlayerItem, UUID> {
             @Param("ownerId") UUID ownerId,
             @Param("gameSessionId") UUID gameSessionId
     );
+
+    @Query("""
+            SELECT pi.ownerId, pi.itemTemplate.rarity, COUNT(pi)
+            FROM PlayerItem pi
+            WHERE pi.gameSessionId = :gameSessionId
+              AND pi.itemTemplate.isLore = false
+            GROUP BY pi.ownerId, pi.itemTemplate.rarity
+            """)
+    List<Object[]> countByOwnerAndRarity(@Param("gameSessionId") UUID gameSessionId);
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { creditWallet, debitWallet } from '../../api/admin/wallet';
+import { creditAllWallets, creditWallet, debitWallet } from '../../api/admin/wallet';
 import { FormCard } from '../../components/admin/FormCard';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { PageState } from '../../components/admin/PageState';
@@ -15,6 +15,10 @@ export function AdminWalletPage() {
   const [amount, setAmount] = useState('10');
   const [description, setDescription] = useState('Корректировка администратора');
   const [submitting, setSubmitting] = useState(false);
+
+  const [bulkAmount, setBulkAmount] = useState('50');
+  const [bulkDescription, setBulkDescription] = useState('Начисление всем игрокам');
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
   const handleOperation = async (type: 'credit' | 'debit') => {
     if (!userId) {
@@ -49,6 +53,41 @@ export function AdminWalletPage() {
     }
   };
 
+  const handleCreditAll = async () => {
+    const parsedAmount = Number(bulkAmount);
+    if (!Number.isInteger(parsedAmount) || parsedAmount < 1) {
+      showToast('Сумма должна быть целым числом не менее 1', 'error');
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Начислить ${parsedAmount} M-коинов каждому из ${players.length} игроков?`,
+      )
+    ) {
+      return;
+    }
+
+    setBulkSubmitting(true);
+    try {
+      const result = await creditAllWallets({
+        amount: parsedAmount,
+        description: bulkDescription || 'Начисление всем игрокам',
+      });
+      showToast(
+        `Начислено ${result.amountPerPlayer} × ${result.playerCount} = ${result.totalCredited} M`,
+      );
+      await reload();
+    } catch (err) {
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось начислить всем',
+        'error',
+      );
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
+
   return (
     <section>
       <PageHeader
@@ -57,6 +96,38 @@ export function AdminWalletPage() {
       />
 
       <PageState loading={loading} error={error} empty={players.length === 0}>
+        <FormCard title="Начислить всем игрокам">
+          <div className="admin-form-grid">
+            <label className="form-field">
+              <span>Сумма каждому</span>
+              <input
+                type="number"
+                min={1}
+                value={bulkAmount}
+                onChange={(event) => setBulkAmount(event.target.value)}
+              />
+            </label>
+            <label className="form-field form-field--wide">
+              <span>Описание</span>
+              <input
+                type="text"
+                value={bulkDescription}
+                onChange={(event) => setBulkDescription(event.target.value)}
+              />
+            </label>
+          </div>
+          <div className="admin-actions">
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={bulkSubmitting}
+              onClick={() => void handleCreditAll()}
+            >
+              {bulkSubmitting ? 'Начисляем…' : 'Начислить всем'}
+            </button>
+          </div>
+        </FormCard>
+
         <FormCard title="Операция с кошельком">
           <div className="admin-form-grid">
             <label className="form-field">

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -86,6 +87,11 @@ public class LocationService {
         }
 
         return AdminLocationPointResponse.from(locationPointRepository.save(location));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<LocationPoint> findByName(UUID gameSessionId, String name) {
+        return locationPointRepository.findByGameSessionIdAndName(gameSessionId, name);
     }
 
     @Transactional

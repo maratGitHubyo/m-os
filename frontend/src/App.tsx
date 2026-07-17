@@ -7,8 +7,10 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AuditPage } from './pages/admin/AuditPage';
 import { AdminAuctionPage } from './pages/admin/AuctionPage';
+import { LorePage } from './pages/admin/LorePage';
 import { AdminEventsPage } from './pages/admin/EventsPage';
 import { ItemsPage } from './pages/admin/ItemsPage';
+import { CollectionStatsPage } from './pages/admin/CollectionStatsPage';
 import { LocationsPage } from './pages/admin/LocationsPage';
 import { NumbersPage } from './pages/admin/NumbersPage';
 import { PlayersPage } from './pages/admin/PlayersPage';
@@ -68,6 +70,7 @@ export function App() {
               <Route path="players" element={<PlayersPage />} />
               <Route path="wallet" element={<AdminWalletPage />} />
               <Route path="items" element={<ItemsPage />} />
+              <Route path="collection" element={<CollectionStatsPage />} />
               <Route path="locations" element={<LocationsPage />} />
               <Route path="qr" element={<QrCodesPage />} />
               <Route path="secrets" element={<SecretsPage />} />
@@ -75,6 +78,7 @@ export function App() {
               <Route path="quests" element={<QuestsPage />} />
               <Route path="events" element={<AdminEventsPage />} />
               <Route path="auction" element={<AdminAuctionPage />} />
+              <Route path="lore" element={<LorePage />} />
               <Route path="audit" element={<AuditPage />} />
             </Route>
           </Route>

@@ -6,6 +6,7 @@ const adminNavItems = [
   { to: '/admin/players', label: 'Игроки' },
   { to: '/admin/wallet', label: 'Кошелёк' },
   { to: '/admin/items', label: 'Предметы' },
+  { to: '/admin/collection', label: 'Коллекция' },
   { to: '/admin/locations', label: 'Локации' },
   { to: '/admin/qr', label: 'QR-коды' },
   { to: '/admin/secrets', label: 'Промокод' },
@@ -13,6 +14,7 @@ const adminNavItems = [
   { to: '/admin/quests', label: 'Квесты' },
   { to: '/admin/events', label: 'События' },
   { to: '/admin/auction', label: 'Аукцион' },
+  { to: '/admin/lore', label: 'Лор' },
   { to: '/admin/audit', label: 'Аудит' },
 ];
 

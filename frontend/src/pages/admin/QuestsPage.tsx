@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { closeIncompleteQuests, createQuest, fetchAdminQuests, updateQuest } from '../../api/admin/quests';
+import {
+  broadcastQuests,
+  closeIncompleteQuests,
+  createQuest,
+  fetchAdminQuests,
+  fetchQuestAutoDistribute,
+  startQuestAutoDistribute,
+  stopQuestAutoDistribute,
+  updateQuest,
+  type QuestAutoDistributeStatus,
+} from '../../api/admin/quests';
 import { listItemTemplates } from '../../api/admin/items';
 import { fetchSessionPlayers } from '../../api/players';
 import { DataTable } from '../../components/admin/DataTable';
@@ -14,6 +24,21 @@ type RewardKind = 'NONE' | 'COIN' | 'ITEM';
 type CompletionPolicy = 'EVERY_PLAYER' | 'LIMITED';
 type Audience = 'ALL' | 'PLAYER';
 
+function isBroadcastQuest(quest: Quest): boolean {
+  return String(quest.targetConfig?.source ?? '') === 'POOL_BROADCAST';
+}
+
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) {
+    return '—';
+  }
+  try {
+    return new Date(value).toLocaleString('ru-RU');
+  } catch {
+    return value;
+  }
+}
+
 export function QuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [templates, setTemplates] = useState<ItemTemplate[]>([]);
@@ -23,6 +48,11 @@ export function QuestsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [closing, setClosing] = useState(false);
+
+  const [broadcastCount, setBroadcastCount] = useState('2');
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [autoStatus, setAutoStatus] = useState<QuestAutoDistributeStatus | null>(null);
+  const [autoBusy, setAutoBusy] = useState(false);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -39,14 +69,16 @@ export function QuestsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [data, itemTemplates, sessionPlayers] = await Promise.all([
+      const [data, itemTemplates, sessionPlayers, auto] = await Promise.all([
         fetchAdminQuests(),
         listItemTemplates(),
         fetchSessionPlayers(),
+        fetchQuestAutoDistribute(),
       ]);
       setQuests(data);
       setTemplates(itemTemplates);
       setPlayers(sessionPlayers);
+      setAutoStatus(auto);
     } catch (err) {
       setError(
         err instanceof Error ? translateError(err.message) : 'Не удалось загрузить квесты',
@@ -185,6 +217,47 @@ export function QuestsPage() {
     }
   };
 
+  const handleBroadcast = async () => {
+    const count = Number(broadcastCount);
+    if (!Number.isInteger(count) || count < 1 || count > 20) {
+      showToast('Укажите число заданий от 1 до 20', 'error');
+      return;
+    }
+    setBroadcasting(true);
+    try {
+      const result = await broadcastQuests(count);
+      showToast(
+        `Выдано ${result.questsCreated} заданий (${result.countPerPlayer} × ${result.playerCount} игроков)`,
+      );
+      await load();
+    } catch (err) {
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось выдать задания',
+        'error',
+      );
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
+  const handleAutoToggle = async () => {
+    setAutoBusy(true);
+    try {
+      const next = autoStatus?.enabled
+        ? await stopQuestAutoDistribute()
+        : await startQuestAutoDistribute();
+      setAutoStatus(next);
+      showToast(next.enabled ? 'Авторассылка включена' : 'Авторассылка остановлена');
+    } catch (err) {
+      showToast(
+        err instanceof Error ? translateError(err.message) : 'Не удалось изменить авторассылку',
+        'error',
+      );
+    } finally {
+      setAutoBusy(false);
+    }
+  };
+
   const policyLabel = (quest: Quest) => {
     if (quest.assigneeUserId) {
       return `Личное · ${playerName(quest.assigneeUserId)}`;
@@ -193,6 +266,17 @@ export function QuestsPage() {
       return `Лимит ${quest.completedCount}/${quest.completionLimit ?? 0}`;
     }
     return `Всем · ${quest.completedCount} сдач`;
+  };
+
+  const rewardLabel = (quest: Quest) => {
+    const reward = quest.rewardConfig;
+    if (!reward?.type) {
+      return '—';
+    }
+    if (String(reward.type).toUpperCase() === 'COIN') {
+      return `${reward.amount ?? 0} M`;
+    }
+    return String(reward.type);
   };
 
   return (
@@ -212,6 +296,60 @@ export function QuestsPage() {
           {closing ? 'Закрываем…' : 'Закрыть незавершённые (перед аукционом)'}
         </button>
       </div>
+
+      <FormCard title="Рассылка из пула">
+        <div className="admin-form-grid">
+          <label className="form-field">
+            <span>Сколько заданий каждому</span>
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={broadcastCount}
+              onChange={(event) => setBroadcastCount(event.target.value)}
+            />
+          </label>
+          <div className="admin-actions form-field">
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={broadcasting}
+              onClick={() => void handleBroadcast()}
+            >
+              {broadcasting ? 'Выдаём…' : 'Выдать задания'}
+            </button>
+          </div>
+
+          <div className="form-field form-field--wide" style={{ display: 'grid', gap: '0.5rem' }}>
+            <p style={{ margin: 0 }}>
+              Авто: каждые {autoStatus?.intervalMinutes ?? 30} мин × {autoStatus?.autoCount ?? 2}{' '}
+              задания каждому.{' '}
+              {autoStatus?.enabled ? (
+                <>
+                  Включена. Следующая: {formatDateTime(autoStatus.nextDistributionAt)}. Последняя:{' '}
+                  {formatDateTime(autoStatus.lastDistributedAt)}.
+                </>
+              ) : (
+                'Выключена.'
+              )}
+            </p>
+            <div className="admin-actions">
+              <button
+                type="button"
+                className={autoStatus?.enabled ? 'btn btn--secondary' : 'btn btn--primary'}
+                disabled={autoBusy}
+                onClick={() => void handleAutoToggle()}
+              >
+                {autoBusy
+                  ? '…'
+                  : autoStatus?.enabled
+                    ? 'Остановить авторассылку'
+                    : 'Включить авторассылку'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </FormCard>
 
       <FormCard title={editingId ? 'Редактировать квест' : 'Создать квест'}>
         <form className="admin-form-grid" onSubmit={(event) => void handleSubmit(event)}>
@@ -403,8 +541,29 @@ export function QuestsPage() {
           rows={quests}
           rowKey={(row) => row.id}
           columns={[
-            { key: 'title', header: 'Название', render: (row) => row.title },
+            {
+              key: 'title',
+              header: 'Название',
+              render: (row) => (
+                <span>
+                  {row.title}
+                  {isBroadcastQuest(row) ? (
+                    <span
+                      style={{
+                        marginLeft: '0.5rem',
+                        fontSize: '0.75rem',
+                        opacity: 0.75,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      · рассылка
+                    </span>
+                  ) : null}
+                </span>
+              ),
+            },
             { key: 'policy', header: 'Кому', render: (row) => policyLabel(row) },
+            { key: 'reward', header: 'Награда', render: (row) => rewardLabel(row) },
             {
               key: 'status',
               header: 'Статус',

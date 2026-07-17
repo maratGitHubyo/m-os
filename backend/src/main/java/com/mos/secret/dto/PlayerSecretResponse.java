@@ -17,7 +17,8 @@ public record PlayerSecretResponse(
         SecretRewardType rewardType,
         Map<String, Object> rewardPayload,
         Boolean used,
-        Instant usedAt
+        Instant usedAt,
+        Boolean isShared
 ) {
 
     public static PlayerSecretResponse from(PlayerSecret secret) {
@@ -31,7 +32,8 @@ public record PlayerSecretResponse(
                 secret.getRewardType(),
                 secret.getRewardPayload(),
                 secret.getUsed(),
-                secret.getUsedAt()
+                secret.getUsedAt(),
+                Boolean.TRUE.equals(secret.getIsShared())
         );
     }
 }

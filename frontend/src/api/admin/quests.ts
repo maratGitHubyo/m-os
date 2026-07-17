@@ -29,3 +29,40 @@ export async function closeIncompleteQuests(): Promise<{
     method: 'POST',
   });
 }
+
+export interface BroadcastQuestsResponse {
+  playerCount: number;
+  questsCreated: number;
+  countPerPlayer: number;
+}
+
+export interface QuestAutoDistributeStatus {
+  enabled: boolean;
+  lastDistributedAt: string | null;
+  nextDistributionAt: string | null;
+  autoCount: number;
+  intervalMinutes: number;
+}
+
+export async function broadcastQuests(count: number): Promise<BroadcastQuestsResponse> {
+  return apiFetch<BroadcastQuestsResponse>('/api/admin/quests/broadcast', {
+    method: 'POST',
+    body: JSON.stringify({ count }),
+  });
+}
+
+export async function fetchQuestAutoDistribute(): Promise<QuestAutoDistributeStatus> {
+  return apiFetch<QuestAutoDistributeStatus>('/api/admin/quests/auto-distribute');
+}
+
+export async function startQuestAutoDistribute(): Promise<QuestAutoDistributeStatus> {
+  return apiFetch<QuestAutoDistributeStatus>('/api/admin/quests/auto-distribute/start', {
+    method: 'POST',
+  });
+}
+
+export async function stopQuestAutoDistribute(): Promise<QuestAutoDistributeStatus> {
+  return apiFetch<QuestAutoDistributeStatus>('/api/admin/quests/auto-distribute/stop', {
+    method: 'POST',
+  });
+}

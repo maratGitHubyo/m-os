@@ -346,7 +346,7 @@ class TradeIntegrationTest {
     private UUID grantItem(UUID userId, String name) {
         UUID templateId = itemService.createTemplate(
                 GAME_SESSION_ID,
-                new com.mos.item.dto.CreateItemTemplateRequest(name, "Trade test", null, ItemRarity.COMMON, false)
+                new com.mos.item.dto.CreateItemTemplateRequest(name, "Trade test", null, ItemRarity.COMMON, false, false)
         ).id();
         return itemService.grantItem(userId, templateId, GAME_SESSION_ID, ADMIN_USER_ID).id();
     }

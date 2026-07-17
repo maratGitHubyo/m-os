@@ -13,5 +13,7 @@ public interface LocationPointRepository extends JpaRepository<LocationPoint, UU
 
     Optional<LocationPoint> findByIdAndGameSessionId(UUID id, UUID gameSessionId);
 
+    Optional<LocationPoint> findByGameSessionIdAndName(UUID gameSessionId, String name);
+
     long countByGameSessionId(UUID gameSessionId);
 }

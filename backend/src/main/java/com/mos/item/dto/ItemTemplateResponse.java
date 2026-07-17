@@ -14,18 +14,29 @@ public record ItemTemplateResponse(
         String imageUrl,
         ItemRarity rarity,
         Boolean isUnique,
+        Boolean isLore,
         Instant createdAt
 ) {
 
     public static ItemTemplateResponse from(ItemTemplate template) {
+        return from(template, true);
+    }
+
+    /**
+     * @param revealLoreDescription when false, lore item descriptions are redacted for players
+     */
+    public static ItemTemplateResponse from(ItemTemplate template, boolean revealLoreDescription) {
+        boolean lore = Boolean.TRUE.equals(template.getIsLore());
+        String description = lore && !revealLoreDescription ? null : template.getDescription();
         return new ItemTemplateResponse(
                 template.getId(),
                 template.getGameSessionId(),
                 template.getName(),
-                template.getDescription(),
+                description,
                 template.getImageUrl(),
                 template.getRarity(),
                 template.getIsUnique(),
+                lore,
                 template.getCreatedAt()
         );
     }

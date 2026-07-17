@@ -1,7 +1,6 @@
 package com.mos.item.dto;
 
 import com.mos.item.entity.PlayerItem;
-import com.mos.item.enums.ItemAcquisitionSource;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -10,19 +9,23 @@ public record PlayerItemResponse(
         UUID id,
         UUID ownerId,
         UUID gameSessionId,
-        ItemAcquisitionSource acquiredFrom,
+        String acquiredFrom,
         Instant acquiredAt,
         ItemTemplateResponse template
 ) {
 
     public static PlayerItemResponse from(PlayerItem item) {
+        return from(item, true);
+    }
+
+    public static PlayerItemResponse from(PlayerItem item, boolean revealLoreDescription) {
         return new PlayerItemResponse(
                 item.getId(),
                 item.getOwnerId(),
                 item.getGameSessionId(),
-                item.getAcquiredFrom(),
+                item.getAcquiredFrom().name(),
                 item.getAcquiredAt(),
-                ItemTemplateResponse.from(item.getItemTemplate())
+                ItemTemplateResponse.from(item.getItemTemplate(), revealLoreDescription)
         );
     }
 }
